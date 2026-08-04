@@ -4,6 +4,7 @@
 #include "Transform.h"
 #include "Model.h"
 #include "MathUtils.h"
+#include "Texture.h"
 
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL.h>
@@ -133,6 +134,30 @@ void Renderer::DrawModel( const Model& model, const Transform& transform) const 
 	}
 }
 
+void Renderer::DrawTexture( const Texture& texture, const Transform& transform, float scale ) const {
+	if (texture.a_texture == nullptr) {
+		return;
+	}
+
+	Vector2 textureSize = texture.GetSize();
+
+	float width = textureSize.x * scale;
+	float height = textureSize.y * scale;
+
+	SDL_FRect destinationRect{
+		transform.position.x - (width * 0.5f),
+		transform.position.y - (height * 0.5f),
+		width,
+		height
+	};
+
+	if (!SDL_RenderTextureRotated( a_renderer, texture.a_texture, nullptr, &destinationRect, transform.rotation, nullptr, SDL_FLIP_NONE )) {
+		std::cerr
+			<< "Could not draw texture: "
+			<< SDL_GetError()
+			<< '\n';
+	}
+}
 
 void Renderer::DrawMesh( const Mesh& mesh, const Transform& transform ) const { 
 	const Color& color = mesh.GetColor();

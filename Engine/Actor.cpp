@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "Renderer.h"
 #include "MathUtils.h"
+#include "Texture.h"
 
 namespace nu {
 	void Actor::Update(float dt) {
@@ -45,12 +46,24 @@ namespace nu {
 	void Actor::Draw(
 		const Renderer& renderer
 	) const {
-		if (!a_destroyed) {
-			renderer.DrawModel(
-				a_model,
-				a_transform
-			);
+		if (a_destroyed) {
+			return;
 		}
+
+		if (a_texture != nullptr) {
+			renderer.DrawTexture(
+				*a_texture,
+				a_transform,
+				a_textureScale
+			);
+
+			return;
+		}
+
+		renderer.DrawModel(
+			a_model,
+			a_transform
+		);
 	}
 
 	bool Actor::IsColliding(

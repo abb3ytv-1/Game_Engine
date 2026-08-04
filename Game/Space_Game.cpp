@@ -83,7 +83,7 @@ bool SpaceGame::Initialize() {
 	a_gameState = GameState::StartGame;
 
 	a_texture = std::make_shared<Texture>();
-	if (!a_texture->Load("assets/starwars_PNG48.png", engine.GetRenderer())) {
+	if (!a_texture->Load("Textures/starwars_PNG51.png", engine.GetRenderer())) {
 		return false;
 	}
 
@@ -103,13 +103,38 @@ bool SpaceGame::LoadAudio() {
 }
 
 void SpaceGame::CreateActors() {
-	auto playerActor = std::make_unique<Player>( Transform{ Vector2{ 960.0f, 540.0f }, 0.0f, 10.0f }, a_playerModel, 300.0f );
+	auto playerActor = std::make_unique<Player>(
+		Transform{
+			Vector2{ 960.0f, 540.0f },
+			0.0f,
+			10.0f
+		},
+		a_playerModel,
+		300.0f
+	);
+
 	a_player = playerActor.get();
+
+	a_player->SetTexture(a_texture);
+	a_player->SetTextureScale(0.25f);
 	a_player->SetCollisionRadius(8.0f);
-	a_gameScene.AddActor( std::move(playerActor) );
-	AddEnemy( Vector2{ 200.0f, 200.0f }, 100.0f );
-	AddEnemy( Vector2{ 1700.0f, 300.0f }, 125.0f );
-	AddEnemy( Vector2{ 400.0f, 900.0f }, 75.0f );
+
+	a_gameScene.AddActor(std::move(playerActor));
+
+	AddEnemy(
+		Vector2{ 200.0f, 200.0f },
+		100.0f
+	);
+
+	AddEnemy(
+		Vector2{ 1700.0f, 300.0f },
+		125.0f
+	);
+
+	AddEnemy(
+		Vector2{ 400.0f, 900.0f },
+		75.0f
+	);
 }
 
 void SpaceGame::AddEnemy(

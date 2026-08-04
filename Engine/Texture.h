@@ -1,22 +1,33 @@
+#pragma once
+
 #include "Vector2.h"
-#include <iostream>
+
+#include <string>
 
 struct SDL_Texture;
 
 namespace nu {
-	class Texture
-	{
+	class Renderer;
+
+	class Texture {
 	public:
 		Texture() = default;
 		~Texture();
 
-		bool Load(const std::string& filename, class Renderer& renderer);
+		// Prevent two Texture objects from owning the same SDL_Texture.
+		Texture(const Texture&) = delete;
+		Texture& operator=(const Texture&) = delete;
 
-		Vector2 GetSize();
+		bool Load(
+			const std::string& filename,
+			Renderer& renderer
+		);
 
-		friend class Renderer;
+		Vector2 GetSize() const;
 
 	private:
 		SDL_Texture* a_texture{ nullptr };
+
+		friend class Renderer;
 	};
 }

@@ -3,7 +3,11 @@
 #include "Transform.h"
 #include "Model.h"
 
+#include <memory>
+
 namespace nu {
+	class Texture;
+
 	class Actor {
 	public:
 		Actor() = default;
@@ -67,6 +71,25 @@ namespace nu {
 			a_lifespan = lifespan;
 		}
 
+		// Sprite texture
+		void SetTexture(
+			const std::shared_ptr<Texture>& texture
+		) {
+			a_texture = texture;
+		}
+
+		const std::shared_ptr<Texture>& GetTexture() const {
+			return a_texture;
+		}
+
+		void SetTextureScale(float scale) {
+			a_textureScale = scale;
+		}
+
+		float GetTextureScale() const {
+			return a_textureScale;
+		}
+
 		// Collision
 		void SetCollisionRadius(float radius) {
 			a_collisionRadius = radius;
@@ -93,13 +116,17 @@ namespace nu {
 		Transform a_transform;
 		Vector2 a_velocity{ 0.0f, 0.0f };
 
-		float a_damping = 1.0f;
-		float a_lifespan = -1.0f;
+		float a_damping{ 1.0f };
+		float a_lifespan{ -1.0f };
+
+		// Sprite
+		std::shared_ptr<Texture> a_texture;
+		float a_textureScale{ 1.0f };
 
 		// Radius before the actor's scale is applied
-		float a_collisionRadius = 1.0f;
+		float a_collisionRadius{ 1.0f };
 
-		bool a_destroyed = false;
+		bool a_destroyed{ false };
 
 		Model a_model;
 	};

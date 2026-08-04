@@ -1,11 +1,11 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
 
 namespace nu {
 	class Mesh;
 	class Model;
+	class Texture;
 	struct Transform;
 
 	class Renderer {
@@ -59,6 +59,12 @@ namespace nu {
 		void DrawModel(
 			const Model& model,
 			const Transform& transform
+		) const;
+
+		void DrawTexture(
+			const Texture& texture,
+			const Transform& transform,
+			float scale = 1.0f
 		) const;
 
 		int GetWidth() const {
