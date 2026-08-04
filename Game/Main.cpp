@@ -16,36 +16,50 @@ public:
 };
 
 int main() {
-	std::cout << "====================== Object ==================\n"; {
-		Object objectA;
-		Object objectB(objectA);
-		Object objectC;
-		objectC = objectA;
-	}
+	//std::cout << "====================== Object ==================\n"; {
+	//	Object objectA;
+	//	Object objectB(objectA);
+	//	Object objectC;
+	//	objectC = objectA;
+	//}
 
-	std::cout << "===================== Raw Pointers =====================\n"; {
-		Object* objectA = new Object();
-		std::cout << objectA << std::endl;
-		Object* objectB = new Object(*objectA);
-		std::cout << objectB << std::endl;
-		Object* objectC = nullptr;
-		objectC = objectA;
-		std::cout << objectC << std::endl;
+	//std::cout << "===================== Raw Pointers =====================\n"; {
+	//	Object* objectA = new Object();
+	//	std::cout << objectA << std::endl;
+	//	Object* objectB = new Object(*objectA);
+	//	std::cout << objectB << std::endl;
+	//	Object* objectC = nullptr;
+	//	objectC = objectA;
+	//	std::cout << objectC << std::endl;
 
-		delete objectA;
-		delete objectB;
-	}
+	//	delete objectA;
+	//	delete objectB;
+	//}
 
-	std::cout << "===================== Smart Pointers =====================\n"; {
-		std::unique_ptr<Object> objectA = std::make_unique<Object>();
-		std::cout << objectA.get() << std::endl;
-		std::unique_ptr<Object> objectB;
-		objectB = std::move(objectA);
-		std::cout << objectB.get() << std::endl;
-	}
+	//std::cout << "===================== Smart Pointers =====================\n"; {
+	//	std::unique_ptr<Object> objectA = std::make_unique<Object>();
+	//	std::cout << objectA.get() << std::endl;
+	//	std::unique_ptr<Object> objectB;
+	//	objectB = std::move(objectA);
+	//	std::cout << objectB.get() << std::endl;
+	//}
+
+	//std::cout << " ===================== Unique Pointers ====================\n"; {
+	//	std::unique_ptr<Object> objectA = std::make_unique<Object>();
+	//	std::cout << objectA.get() << std::endl;
+	//	
+	//}
+
+	//std::cout << " ===================== Shared Pointers ====================\n"; {
+	//	auto objectA = std::make_shared<Object>();
+	//	std::cout << objectA.get() << std::endl;
+	//	std::cout << objectA.use_count() << std::endl;
+	//	auto objectB = objectA;
 
 
-	return 0;
+
+	//}
+
 
 	if (!engine.Initialize()) {
 		return 1;

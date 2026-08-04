@@ -6,7 +6,9 @@
 #include "Scene.h"
 #include "Text.h"
 #include "Vector2.h"
+#include "Texture.h"
 
+#include <memory>
 #include <vector>
 
 namespace nu {
@@ -71,6 +73,7 @@ namespace nu {
 
 		std::vector<Vector2> a_mousePoints;
 		std::vector<bool> a_startsNewShape;
+		std::shared_ptr<Texture> a_texture;
 
 		int a_score{ 0 };
 		int a_highScore{ 0 };

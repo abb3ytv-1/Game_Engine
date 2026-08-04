@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 namespace nu {
 	class Mesh;
@@ -70,6 +71,7 @@ namespace nu {
 
 	private:
 		friend class Text;
+		friend class Texture;
 
 		SDL_Window* a_window{ nullptr };
 		SDL_Renderer* a_renderer{ nullptr };

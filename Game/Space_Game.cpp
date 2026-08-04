@@ -82,6 +82,11 @@ bool SpaceGame::Initialize() {
 
 	a_gameState = GameState::StartGame;
 
+	a_texture = std::make_shared<Texture>();
+	if (!a_texture->Load("assets/starwars_PNG48.png", engine.GetRenderer())) {
+		return false;
+	}
+
 	return true;
 }
 
