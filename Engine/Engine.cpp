@@ -35,7 +35,8 @@ namespace nu {
 	}
 
 	void Engine::Shutdown() {
-		a_particleSystem.Shutdown();
+		Resources().RemoveAll();
+
 		a_audio.Shutdown();
 		a_input.Shutdown();
 		a_renderer.Shutdown();

@@ -2,6 +2,7 @@
 
 #include "Font.h"
 #include "Renderer.h"
+#include "Resource.h"
 #include "Vector3.h"
 
 #include <string>
@@ -13,14 +14,15 @@ namespace nu {
 	public:
 		Text() = default;
 
-		Text(Font* font) :
+		Text(res_t<Font> font) :
 			a_font{ font }
 		{}
 
 		~Text();
 
-		Text(const Text&) = delete;
-		Text& operator=(const Text&) = delete;
+		void SetFont(res_t<Font> font) {
+			a_font = font;
+		}
 
 		bool Create(
 			const Renderer& renderer,
@@ -34,14 +36,8 @@ namespace nu {
 			float y
 		);
 
-		void SetFont(Font* font) {
-			a_font = font;
-		}
-
 	private:
-		// Text uses the font but does not own it.
-		Font* a_font{ nullptr };
-
+		res_t<Font> a_font;
 		SDL_Texture* a_texture{ nullptr };
 	};
 }

@@ -191,7 +191,10 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Singleton.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />

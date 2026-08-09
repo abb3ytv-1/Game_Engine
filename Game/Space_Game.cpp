@@ -12,14 +12,15 @@
 #include "Player.h"
 
 #include <SDL3/SDL.h>
-#include <string>
-#include <memory>
-#include <utility>
+
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
 
 using namespace nu;
 
-SpaceGame::SpaceGame() : a_stateText{ &a_font }, a_hudText{ &a_font } {}
+SpaceGame::SpaceGame() = default;
 
 int SpaceGame::Run() {
 	if (!Initialize()) {
@@ -31,11 +32,14 @@ int SpaceGame::Run() {
 	while (!a_quit) {
 		ProcessEvents();
 
-		if (a_quit) { break; }
+		if (a_quit) {
+			break;
+		}
 
 		engine.Update();
 
-		float dt = engine.GetTime().GetDeltaTime();
+		float dt =
+			engine.GetTime().GetDeltaTime();
 
 		Update(dt);
 		Draw(renderer);
@@ -47,7 +51,9 @@ int SpaceGame::Run() {
 }
 
 bool SpaceGame::Initialize() {
-	if (!Game::Initialize()) { return false; }
+	if (!Game::Initialize()) {
+		return false;
+	}
 
 	a_scene = &a_gameScene;
 
@@ -60,20 +66,93 @@ bool SpaceGame::Initialize() {
 
 	LoadHighScore();
 
-	if (!a_font.Load( "Fonts/New Moon.ttf", 48.0f )) { return false; }
+	// Load the shared font resource.
+	a_font = Resources().GetWithID<Font>(
+		"game_font",
+		"Fonts/New Moon.ttf",
+		48.0f
+	);
 
-	a_stateText.SetFont(&a_font);
-	a_hudText.SetFont(&a_font);
+	if (a_font == nullptr) {
+		return false;
+	}
 
-	std::string titleMessage = "Fishy's Space Adventure | High Score: " + std::to_string(a_highScore) + " | Press Enter to Start";
+	// Request the same font again to confirm
+	// that the Resource Manager reuses it.
+	res_t<Font> reusedFont =
+		Resources().GetWithID<Font>(
+			"game_font",
+			"Fonts/New Moon.ttf",
+			48.0f
+		);
 
-	if (!a_stateText.Create( engine.GetRenderer(), titleMessage, Color{ 0.45f, 0.85f, 1.0f } )) { return false; }
+	if (reusedFont != a_font) {
+		std::cerr
+			<< "Font resource was not reused.\n";
 
-	std::string hudMessage = "Score: 0 | High Score: " + std::to_string(a_highScore) + " | Lives: 3 | Level: 1";
+		return false;
+	}
 
-	if (!a_hudText.Create( engine.GetRenderer(), hudMessage, Color{ 1.0f, 1.0f, 1.0f } )) { return false; }
+	a_stateText.SetFont(a_font);
+	a_hudText.SetFont(a_font);
 
-	if (!LoadAudio()) { return false; }
+	std::string titleMessage =
+		"Fishy Space Adventure | High Score: " +
+		std::to_string(a_highScore) +
+		" | Press Enter to Start";
+
+	if (!a_stateText.Create(
+		engine.GetRenderer(),
+		titleMessage,
+		Color{ 0.45f, 0.85f, 1.0f }
+	)) {
+		return false;
+	}
+
+	std::string hudMessage =
+		"Score: 0 | High Score: " +
+		std::to_string(a_highScore) +
+		" | Lives: 3 | Level: 1";
+
+	if (!a_hudText.Create(
+		engine.GetRenderer(),
+		hudMessage,
+		Color{ 1.0f, 1.0f, 1.0f }
+	)) {
+		return false;
+	}
+
+	// Load the shared texture resource.
+	a_texture = Resources().Get<Texture>(
+		"textures/starwars_PNG51.png",
+		engine.GetRenderer()
+	);
+
+	if (a_texture == nullptr) {
+		std::cerr
+			<< "Could not load texture resource.\n";
+
+		return false;
+	}
+
+	// Request the same texture again to confirm
+	// that the Resource Manager reuses it.
+	res_t<Texture> reusedTexture =
+		Resources().Get<Texture>(
+			"textures/starwars_PNG51.png",
+			engine.GetRenderer()
+		);
+
+	if (reusedTexture != a_texture) {
+		std::cerr
+			<< "Texture resource was not reused.\n";
+
+		return false;
+	}
+
+	if (!LoadAudio()) {
+		return false;
+	}
 
 	a_playerModel = CreatePlayerModel();
 	a_enemyModel = CreateEnemyModel();
@@ -82,36 +161,53 @@ bool SpaceGame::Initialize() {
 
 	a_gameState = GameState::StartGame;
 
-	a_texture = std::make_shared<Texture>();
-	if (!a_texture->Load("Textures/starwars_PNG51.png", engine.GetRenderer())) {
-		return false;
-	}
-
 	return true;
 }
 
 bool SpaceGame::LoadAudio() {
 	Audio& audio = engine.GetAudio();
+
 	bool loaded = true;
 
-	loaded &= audio.AddSound( "bass", "Audio/bass.wav" );
-	loaded &= audio.AddSound( "snare", "Audio/snare.wav" );
-	loaded &= audio.AddSound( "clap", "Audio/clap.wav" );
-	loaded &= audio.AddSound( "open-hat", "Audio/open-hat.wav" );
-	loaded &= audio.AddSound( "cowbell", "Audio/cowbell.wav" );
+	loaded &= audio.AddSound(
+		"bass",
+		"Audio/bass.wav"
+	);
+
+	loaded &= audio.AddSound(
+		"snare",
+		"Audio/snare.wav"
+	);
+
+	loaded &= audio.AddSound(
+		"clap",
+		"Audio/clap.wav"
+	);
+
+	loaded &= audio.AddSound(
+		"open-hat",
+		"Audio/open-hat.wav"
+	);
+
+	loaded &= audio.AddSound(
+		"cowbell",
+		"Audio/cowbell.wav"
+	);
+
 	return loaded;
 }
 
 void SpaceGame::CreateActors() {
-	auto playerActor = std::make_unique<Player>(
-		Transform{
-			Vector2{ 960.0f, 540.0f },
-			0.0f,
-			10.0f
-		},
-		a_playerModel,
-		300.0f
-	);
+	auto playerActor =
+		std::make_unique<Player>(
+			Transform{
+				Vector2{ 960.0f, 540.0f },
+				0.0f,
+				10.0f
+			},
+			a_playerModel,
+			300.0f
+		);
 
 	a_player = playerActor.get();
 
@@ -119,7 +215,9 @@ void SpaceGame::CreateActors() {
 	a_player->SetTextureScale(0.25f);
 	a_player->SetCollisionRadius(8.0f);
 
-	a_gameScene.AddActor(std::move(playerActor));
+	a_gameScene.AddActor(
+		std::move(playerActor)
+	);
 
 	AddEnemy(
 		Vector2{ 200.0f, 200.0f },
@@ -138,40 +236,94 @@ void SpaceGame::CreateActors() {
 }
 
 void SpaceGame::AddEnemy(
-	const Vector2& position, float speed ) {
-	if (a_player == nullptr) { return; }
+	const Vector2& position,
+	float speed
+) {
+	if (a_player == nullptr) {
+		return;
+	}
 
-	auto enemy = std::make_unique<Enemy>( Transform{ position, 0.0f, 8.0f }, a_enemyModel, speed );
+	auto enemy =
+		std::make_unique<Enemy>(
+			Transform{
+				position,
+				0.0f,
+				8.0f
+			},
+			a_enemyModel,
+			speed
+		);
 
 	enemy->SetTarget(*a_player);
 	enemy->SetCollisionRadius(8.0f);
 
-	a_gameScene.AddActor(std::move(enemy));
+	a_gameScene.AddActor(
+		std::move(enemy)
+	);
 }
 
-void SpaceGame::AddFastEnemy( const Vector2& position, float speed ) {
-	if (a_player == nullptr) { return; }
+void SpaceGame::AddFastEnemy(
+	const Vector2& position,
+	float speed
+) {
+	if (a_player == nullptr) {
+		return;
+	}
 
-	auto enemy = std::make_unique<Enemy>( Transform{ position, 0.0f, 6.0f }, a_fastEnemyModel, speed );
+	auto enemy =
+		std::make_unique<Enemy>(
+			Transform{
+				position,
+				0.0f,
+				6.0f
+			},
+			a_fastEnemyModel,
+			speed
+		);
 
 	enemy->SetTarget(*a_player);
 	enemy->SetCollisionRadius(6.0f);
 
-	a_gameScene.AddActor(std::move(enemy));
+	a_gameScene.AddActor(
+		std::move(enemy)
+	);
 }
 
 void SpaceGame::ProcessEvents() {
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_EVENT_QUIT) { a_quit = true; continue; }
+		if (event.type == SDL_EVENT_QUIT) {
+			a_quit = true;
+			continue;
+		}
+
 		if (event.type == SDL_EVENT_KEY_DOWN) {
-			if ( event.key.scancode == SDL_SCANCODE_ESCAPE ) { a_quit = true; continue; }
+			if (
+				event.key.scancode ==
+				SDL_SCANCODE_ESCAPE
+				) {
+				a_quit = true;
+				continue;
+			}
 
-			bool enterPressed = event.key.scancode == SDL_SCANCODE_RETURN || event.key.scancode == SDL_SCANCODE_KP_ENTER;
-			bool canStartGame = a_gameState == GameState::Title || a_gameState == GameState::StartGame || a_gameState == GameState::GameOver;
+			bool enterPressed =
+				event.key.scancode ==
+				SDL_SCANCODE_RETURN ||
+				event.key.scancode ==
+				SDL_SCANCODE_KP_ENTER;
 
-			if (enterPressed && canStartGame) { StartNewGame(); }
+			bool canStartGame =
+				a_gameState ==
+				GameState::Title ||
+				a_gameState ==
+				GameState::StartGame ||
+				a_gameState ==
+				GameState::GameOver;
+
+			if (enterPressed && canStartGame) {
+				StartNewGame();
+			}
 		}
 	}
 }
@@ -194,13 +346,17 @@ void SpaceGame::Update(float dt) {
 		break;
 
 	case GameState::Game:
-		if (a_playerInvincibilityTimer > 0.0f) { a_playerInvincibilityTimer -= dt; }
+		if (a_playerInvincibilityTimer > 0.0f) {
+			a_playerInvincibilityTimer -= dt;
+		}
 
 		HandleAudioInput();
 		HandlePlayerInput(dt);
 		EmitPlayerParticle();
 		HandleMouseInput();
+
 		Game::Update(dt);
+
 		CheckCollisions();
 		break;
 
@@ -214,7 +370,6 @@ void SpaceGame::Update(float dt) {
 
 void SpaceGame::HandleAudioInput() {
 	Input& input = engine.GetInput();
-
 	Audio& audio = engine.GetAudio();
 
 	if (input.GetKeyPress(SDL_SCANCODE_1)) {
@@ -239,11 +394,17 @@ void SpaceGame::HandleAudioInput() {
 }
 
 void SpaceGame::HandlePlayerInput(float dt) {
-	if ( a_player == nullptr || a_player->IsDestroyed() ) { return; }
+	if (
+		a_player == nullptr ||
+		a_player->IsDestroyed()
+		) {
+		return;
+	}
 
 	Input& input = engine.GetInput();
 
-	float rotation = a_player->GetTransform().rotation;
+	float rotation =
+		a_player->GetTransform().rotation;
 
 	if (input.GetKeyDown(SDL_SCANCODE_LEFT)) {
 		rotation -= a_rotationSpeed * dt;
@@ -277,7 +438,9 @@ void SpaceGame::HandlePlayerInput(float dt) {
 		direction = direction.Normalized();
 	}
 
-	a_player->SetVelocity( direction * a_player->GetSpeed() );
+	a_player->SetVelocity(
+		direction * a_player->GetSpeed()
+	);
 
 	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) {
 		HandleShooting();
@@ -285,21 +448,45 @@ void SpaceGame::HandlePlayerInput(float dt) {
 }
 
 void SpaceGame::HandleShooting() {
-	if ( a_player == nullptr || a_player->IsDestroyed() ) { return; }
+	if (
+		a_player == nullptr ||
+		a_player->IsDestroyed()
+		) {
+		return;
+	}
 
-	float rotation = a_player->GetTransform().rotation;
+	float rotation =
+		a_player->GetTransform().rotation;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
-	forward = forward.Rotate( rotation * DegToRad );
+	forward = forward.Rotate(
+		rotation * DegToRad
+	);
 
-	float spawnDistance = a_player->GetCollisionRadius() + 10.0f;
+	float spawnDistance =
+		a_player->GetCollisionRadius() +
+		10.0f;
 
-	Vector2 bulletPosition = a_player->GetTransform().position + (forward * spawnDistance);
+	Vector2 bulletPosition =
+		a_player->GetTransform().position +
+		(forward * spawnDistance);
 
-	auto bullet = std::make_unique<Bullet>( Transform{ bulletPosition, rotation, 4.0f }, a_bulletModel, 700.0f, 2.0f );
+	auto bullet =
+		std::make_unique<Bullet>(
+			Transform{
+				bulletPosition,
+				rotation,
+				4.0f
+			},
+			a_bulletModel,
+			700.0f,
+			2.0f
+		);
 
-	a_gameScene.AddActor( std::move(bullet) );
+	a_gameScene.AddActor(
+		std::move(bullet)
+	);
 
 	engine.GetAudio().PlaySound("snare");
 }
@@ -307,17 +494,29 @@ void SpaceGame::HandleShooting() {
 void SpaceGame::HandleMouseInput() {
 	Input& input = engine.GetInput();
 
-	if ( input.GetButtonPressed( Input::MouseButton::Left ) ) {
-		Vector2 position = input.GetMousePosition();
+	if (
+		input.GetButtonPressed(
+			Input::MouseButton::Left
+		)
+		) {
+		Vector2 position =
+			input.GetMousePosition();
 
 		a_mousePoints.push_back(position);
 		a_startsNewShape.push_back(true);
 	}
-	else if ( input.GetMouseDown( Input::MouseButton::Left ) ) {
-		Vector2 position = input.GetMousePosition();
+	else if (
+		input.GetMouseDown(
+			Input::MouseButton::Left
+		)
+		) {
+		Vector2 position =
+			input.GetMousePosition();
 
 		if (!a_mousePoints.empty()) {
-			Vector2 difference = position - a_mousePoints.back();
+			Vector2 difference =
+				position -
+				a_mousePoints.back();
 
 			if (difference.Length() > 10.0f) {
 				a_mousePoints.push_back(position);
@@ -328,28 +527,56 @@ void SpaceGame::HandleMouseInput() {
 }
 
 void SpaceGame::CheckCollisions() {
-	auto& actors = a_gameScene.GetActors();
+	auto& actors =
+		a_gameScene.GetActors();
 
 	// Bullet and enemy collisions
 	for (auto& actor : actors) {
-		Bullet* bullet = dynamic_cast<Bullet*>( actor.get() );
+		Bullet* bullet =
+			dynamic_cast<Bullet*>(
+				actor.get()
+				);
 
-		if ( bullet == nullptr || bullet->IsDestroyed() ) { continue; }
+		if (
+			bullet == nullptr ||
+			bullet->IsDestroyed()
+			) {
+			continue;
+		}
 
 		for (auto& otherActor : actors) {
-			Enemy* enemy = dynamic_cast<Enemy*>( otherActor.get() );
+			Enemy* enemy =
+				dynamic_cast<Enemy*>(
+					otherActor.get()
+					);
 
-			if ( enemy == nullptr || enemy->IsDestroyed() ) { continue; }
+			if (
+				enemy == nullptr ||
+				enemy->IsDestroyed()
+				) {
+				continue;
+			}
 
 			if (bullet->IsColliding(*enemy)) {
-				Vector2 explosionPosition = enemy->GetTransform().position;
+				Vector2 explosionPosition =
+					enemy->GetTransform().position;
 
 				bullet->Destroy();
 				enemy->Destroy();
 
-				engine.GetAudio().PlaySound("clap");
+				engine.GetAudio().PlaySound(
+					"clap"
+				);
 
-				CreateExplosion( explosionPosition, Color{ 1.0f, 0.65f, 0.2f }, 100 );
+				CreateExplosion(
+					explosionPosition,
+					Color{
+						1.0f,
+						0.65f,
+						0.2f
+					},
+					100
+				);
 
 				a_score++;
 				UpdateHUDText();
@@ -360,22 +587,43 @@ void SpaceGame::CheckCollisions() {
 	}
 
 	// Player and enemy collisions
-	if ( a_player == nullptr || a_player->IsDestroyed() || a_playerInvincibilityTimer > 0.0f ) { return; }
+	if (
+		a_player == nullptr ||
+		a_player->IsDestroyed() ||
+		a_playerInvincibilityTimer > 0.0f
+		) {
+		return;
+	}
 
 	bool gameOver = false;
 
 	for (auto& actor : actors) {
-		Enemy* enemy = dynamic_cast<Enemy*>( actor.get() );
+		Enemy* enemy =
+			dynamic_cast<Enemy*>(
+				actor.get()
+				);
 
-		if ( enemy == nullptr || enemy->IsDestroyed() ) { continue; }
+		if (
+			enemy == nullptr ||
+			enemy->IsDestroyed()
+			) {
+			continue;
+		}
 
-		if (!a_player->IsColliding(*enemy)) { continue; }
+		if (!a_player->IsColliding(*enemy)) {
+			continue;
+		}
 
-		Vector2 collisionPosition = enemy->GetTransform().position;
+		Vector2 collisionPosition =
+			enemy->GetTransform().position;
 
 		enemy->Destroy();
 
-		CreateExplosion( collisionPosition, Color{ 1.0f, 0.2f, 0.2f }, 75 );
+		CreateExplosion(
+			collisionPosition,
+			Color{ 1.0f, 0.2f, 0.2f },
+			75
+		);
 
 		a_lives--;
 
@@ -383,13 +631,27 @@ void SpaceGame::CheckCollisions() {
 
 		UpdateHUDText();
 
-		if (a_lives <= 0) { gameOver = true; break; }
+		if (a_lives <= 0) {
+			gameOver = true;
+			break;
+		}
 
-		Renderer& renderer = engine.GetRenderer();
+		Renderer& renderer =
+			engine.GetRenderer();
 
-		a_player->SetPosition( Vector2{ renderer.GetWidth() * 0.5f, renderer.GetHeight() * 0.5f } );
-		a_player->SetVelocity( Vector2{ 0.0f, 0.0f } );
+		a_player->SetPosition(
+			Vector2{
+				renderer.GetWidth() * 0.5f,
+				renderer.GetHeight() * 0.5f
+			}
+		);
+
+		a_player->SetVelocity(
+			Vector2{ 0.0f, 0.0f }
+		);
+
 		a_player->SetRotation(0.0f);
+
 		a_playerInvincibilityTimer = 1.5f;
 		break;
 	}
@@ -404,8 +666,13 @@ void SpaceGame::CheckCollisions() {
 	}
 }
 
-void SpaceGame::CreateExplosion(const Vector2& position, const Color& color, int particleCount) {
-	ParticleSystem& particleSystem = engine.GetPS();
+void SpaceGame::CreateExplosion(
+	const Vector2& position,
+	const Color& color,
+	int particleCount
+) {
+	ParticleSystem& particleSystem =
+		engine.GetPS();
 
 	for (int i = 0; i < particleCount; i++) {
 		Particle particle;
@@ -413,9 +680,10 @@ void SpaceGame::CreateExplosion(const Vector2& position, const Color& color, int
 		particle.position = position;
 		particle.color = color;
 
-		particle.lifespan = RandomFloat(0.5f, 2.0f);
+		particle.lifespan =
+			RandomFloat(0.5f, 2.0f);
 
-		particle.velocity = Vector2 {
+		particle.velocity = Vector2{
 			RandomFloat(-600.0f, 600.0f),
 			RandomFloat(-600.0f, 600.0f)
 		};
@@ -425,30 +693,57 @@ void SpaceGame::CreateExplosion(const Vector2& position, const Color& color, int
 }
 
 void SpaceGame::EmitPlayerParticle() {
-	if (a_player == nullptr || a_player->IsDestroyed()) { return; }
+	if (
+		a_player == nullptr ||
+		a_player->IsDestroyed()
+		) {
+		return;
+	}
 
-	// only create trail while moving
-	if (a_player->GetVelocity().LengthSqr() <= 0.0f) { return; }
+	if (
+		a_player->GetVelocity().LengthSqr() <=
+		0.0f
+		) {
+		return;
+	}
 
-	float rotation = a_player->GetTransform().rotation;
+	float rotation =
+		a_player->GetTransform().rotation;
+
 	Vector2 forward{ 1.0f, 0.0f };
-	forward = forward.Rotate(rotation * DegToRad);
-	float trailDistance = a_player->GetCollisionRadius() + 20.0f;
+
+	forward = forward.Rotate(
+		rotation * DegToRad
+	);
+
+	float trailDistance =
+		a_player->GetCollisionRadius() +
+		20.0f;
+
 	Particle particle;
 
-	// Spawn the particle behind player
-	particle.position = a_player->GetTransform().position - (forward * trailDistance);
+	particle.position =
+		a_player->GetTransform().position -
+		(forward * trailDistance);
 
-	// Add a small random spread
-	particle.position.x += RandomFloat(-5.0f, 5.0f);
-	particle.position.y += RandomFloat(-5.0f, 5.0f);
-	particle.color = Color{ 0.4f, 0.8f, 1.0f };
-	particle.lifespan = RandomFloat(0.25f, 0.75f);
+	particle.position.x +=
+		RandomFloat(-5.0f, 5.0f);
 
-	// Move mostly away from the back of the fish
-	particle.velocity = (forward * RandomFloat(-100.0f, -40.0f)) + Vector2{
-		RandomFloat(-30.0f, 30.0f),
-		RandomFloat(-30.0f, 30.0f)
+	particle.position.y +=
+		RandomFloat(-5.0f, 5.0f);
+
+	particle.color =
+		Color{ 0.4f, 0.8f, 1.0f };
+
+	particle.lifespan =
+		RandomFloat(0.25f, 0.75f);
+
+	particle.velocity =
+		(forward *
+			RandomFloat(-100.0f, -40.0f)) +
+		Vector2{
+			RandomFloat(-30.0f, 30.0f),
+			RandomFloat(-30.0f, 30.0f)
 	};
 
 	engine.GetPS().AddParticle(particle);
@@ -456,6 +751,7 @@ void SpaceGame::EmitPlayerParticle() {
 
 void SpaceGame::StartNewGame() {
 	a_gameScene.RemoveAll();
+
 	a_player = nullptr;
 	a_score = 0;
 	a_lives = 3;
@@ -468,7 +764,7 @@ void SpaceGame::StartNewGame() {
 
 	CreateActors();
 	UpdateHUDText();
-	
+
 	a_gameState = GameState::Game;
 }
 
@@ -483,16 +779,38 @@ void SpaceGame::EndGame() {
 		SaveHighScore();
 	}
 
-	std::string message = "Game Over | Score: " + std::to_string(a_score) + " | High Score: " + std::to_string(a_highScore) + " | Press Enter to Play Again";
-	a_stateText.Create( engine.GetRenderer(), message, Color{ 1.0f, 0.25f, 0.25f } );
+	std::string message =
+		"Game Over | Score: " +
+		std::to_string(a_score) +
+		" | High Score: " +
+		std::to_string(a_highScore) +
+		" | Press Enter to Play Again";
+
+	a_stateText.Create(
+		engine.GetRenderer(),
+		message,
+		Color{ 1.0f, 0.25f, 0.25f }
+	);
+
 	a_gameState = GameState::GameOver;
 }
 
 bool SpaceGame::HasActiveEnemies() const {
-	for (const auto& actor : a_gameScene.GetActors()) {
-		const Enemy* enemy = dynamic_cast<const Enemy*>(actor.get());
+	for (
+		const auto& actor :
+		a_gameScene.GetActors()
+		) {
+		const Enemy* enemy =
+			dynamic_cast<const Enemy*>(
+				actor.get()
+				);
 
-		if (enemy != nullptr && !enemy->IsDestroyed()) { return true; }
+		if (
+			enemy != nullptr &&
+			!enemy->IsDestroyed()
+			) {
+			return true;
+		}
 	}
 
 	return false;
@@ -503,7 +821,8 @@ void SpaceGame::StartNextLevel() {
 	a_levelStartTimer = 2.0f;
 
 	std::string message =
-		"Level " + std::to_string(a_level);
+		"Level " +
+		std::to_string(a_level);
 
 	a_stateText.Create(
 		engine.GetRenderer(),
@@ -519,54 +838,108 @@ void SpaceGame::StartNextLevel() {
 }
 
 void SpaceGame::SpawnLevelEnemies() {
-	Renderer& renderer = engine.GetRenderer();
+	Renderer& renderer =
+		engine.GetRenderer();
 
 	int enemyCount = a_level + 2;
 
-	float normalEnemySpeed = 75.0f + (a_level * 20.0f);
+	float normalEnemySpeed =
+		75.0f +
+		(a_level * 20.0f);
 
-	float fastEnemySpeed = normalEnemySpeed * 1.75f;
+	float fastEnemySpeed =
+		normalEnemySpeed * 1.75f;
 
 	for (int i = 0; i < enemyCount; i++) {
-		Vector2 position{ RandomFloat( 100.0f, static_cast<float>( renderer.GetWidth() - 100 ) ),
-			RandomFloat( 100.0f, static_cast<float>( renderer.GetHeight() - 100 ))
+		Vector2 position{
+			RandomFloat(
+				100.0f,
+				static_cast<float>(
+					renderer.GetWidth() - 100
+				)
+			),
+			RandomFloat(
+				100.0f,
+				static_cast<float>(
+					renderer.GetHeight() - 100
+				)
+			)
 		};
 
-		// Every third enemy is a fast enemy,
-		// beginning on level two.
-		if (a_level >= 2 && i % 3 == 0) {
-			AddFastEnemy( position, fastEnemySpeed );
+		if (
+			a_level >= 2 &&
+			i % 3 == 0
+			) {
+			AddFastEnemy(
+				position,
+				fastEnemySpeed
+			);
 		}
 		else {
-			AddEnemy( position, normalEnemySpeed );
+			AddEnemy(
+				position,
+				normalEnemySpeed
+			);
 		}
 	}
 }
 
 void SpaceGame::UpdateHUDText() {
-	std::string hud = "Score: " + std::to_string(a_score) + " | High Score: " + std::to_string(a_highScore) + " | Lives: " + std::to_string(a_lives) + " | Level: " + std::to_string(a_level);
-	a_hudText.Create( engine.GetRenderer(), hud, Color{ 1.0f, 1.0f, 1.0f } );
+	std::string hud =
+		"Score: " +
+		std::to_string(a_score) +
+		" | High Score: " +
+		std::to_string(a_highScore) +
+		" | Lives: " +
+		std::to_string(a_lives) +
+		" | Level: " +
+		std::to_string(a_level);
+
+	a_hudText.Create(
+		engine.GetRenderer(),
+		hud,
+		Color{ 1.0f, 1.0f, 1.0f }
+	);
 }
 
 void SpaceGame::LoadHighScore() {
 	std::string data;
 
-	if (!ReadTextFile("highscore.txt", data)) { a_highScore = 0; return; }
+	if (!ReadTextFile("highscore.txt", data)) {
+		a_highScore = 0;
+		return;
+	}
 
-	try { a_highScore = std::stoi(data); }
-	catch (...) { a_highScore = 0; }
+	try {
+		a_highScore = std::stoi(data);
+	}
+	catch (...) {
+		a_highScore = 0;
+	}
 }
 
-void SpaceGame::SaveHighScore() { WriteTextFile("highscore.txt", std::to_string(a_highScore), false); }
+void SpaceGame::SaveHighScore() {
+	WriteTextFile(
+		"highscore.txt",
+		std::to_string(a_highScore),
+		false
+	);
+}
 
-void SpaceGame::Draw( const Renderer& renderer ) {
+void SpaceGame::Draw(
+	const Renderer& renderer
+) {
 	renderer.SetColor(0, 0, 0, 255);
 	renderer.Clear();
 
 	switch (a_gameState) {
 	case GameState::Title:
 	case GameState::StartGame:
-		a_stateText.Draw( renderer, 250.0f, 475.0f );
+		a_stateText.Draw(
+			renderer,
+			250.0f,
+			475.0f
+		);
 		break;
 
 	case GameState::StartLevel:
@@ -580,11 +953,38 @@ void SpaceGame::Draw( const Renderer& renderer ) {
 		break;
 
 	case GameState::Game:
-		renderer.SetColor( 255, 255, 255, 255 );
+		if (a_texture != nullptr) {
+			Transform textureTransform {
+				Vector2{ 30.0f, 30.0f },
+				23.0f,
+				2.0f
+			};
 
-		for ( std::size_t i = 0; i + 1 < a_mousePoints.size(); i++ ) {
+			renderer.DrawTexture(
+				*a_texture,
+				textureTransform
+			);
+		}
+
+		renderer.SetColor(
+			255,
+			255,
+			255,
+			255
+		);
+
+		for (
+			std::size_t i = 0;
+			i + 1 < a_mousePoints.size();
+			i++
+			) {
 			if (!a_startsNewShape[i + 1]) {
-				renderer.DrawLine( a_mousePoints[i].x, a_mousePoints[i].y, a_mousePoints[i + 1].x, a_mousePoints[i + 1].y );
+				renderer.DrawLine(
+					a_mousePoints[i].x,
+					a_mousePoints[i].y,
+					a_mousePoints[i + 1].x,
+					a_mousePoints[i + 1].y
+				);
 			}
 		}
 
@@ -592,13 +992,21 @@ void SpaceGame::Draw( const Renderer& renderer ) {
 
 		engine.GetPS().Draw(renderer);
 
-		a_hudText.Draw( renderer, 20.0f, 20.0f );
+		a_hudText.Draw(
+			renderer,
+			20.0f,
+			20.0f
+		);
 		break;
 
 	case GameState::GameOver:
 		engine.GetPS().Draw(renderer);
 
-		a_stateText.Draw( renderer, 250.0f, 475.0f );
+		a_stateText.Draw(
+			renderer,
+			250.0f,
+			475.0f
+		);
 		break;
 
 	default:
@@ -611,6 +1019,12 @@ void SpaceGame::Draw( const Renderer& renderer ) {
 void SpaceGame::Shutdown() {
 	a_gameScene.RemoveAll();
 	a_player = nullptr;
+
+	a_texture.reset();
+
+	a_stateText.SetFont(nullptr);
+	a_hudText.SetFont(nullptr);
+	a_font.reset();
 
 	Game::Shutdown();
 }

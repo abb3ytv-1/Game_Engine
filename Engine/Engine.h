@@ -3,8 +3,9 @@
 #include "Audio.h"
 #include "GameTime.h"
 #include "Input.h"
-#include "Renderer.h"
 #include "ParticleSystem.h"
+#include "Renderer.h"
+#include "ResourceManager.h"
 
 namespace nu {
 	class Engine {
