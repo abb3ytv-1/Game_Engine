@@ -7,89 +7,65 @@
 
 using namespace nu;
 
+class Animal {
+public:
+	virtual void speak() { std::cout << "???"; }
+};
+
+class Cat : public Animal {
+	void speak() override { std::cout << "meow"; }
+};
+
+class Dog : public Animal {
+	void speak() override { std::cout << "BARK"; }
+};
+
+class Bird : public Animal {
+	void speak() override { std::cout << "cheep"; }
+};
+
+//enum class Type {
+//	Cat,
+//	Dog,
+//	Bird
+//};
+//
+//Animal* AnimalFactory(Type id) {
+//	Animal* animal = nullptr;
+//
+//	switch (id) {
+//	case Type::Cat:
+//		animal = new Cat;
+//		break;
+//	case Type::Dog:
+//		animal = new Dog;
+//		break;
+//	case Type::Bird:
+//		animal = new Bird;
+//		break;
+//	}
+//
+//	return animal;
+//}
+
+Animal* AnimalFactory(const std::string& id) {
+	Animal* animal = nullptr;
+
+	if (id == "Cat") animal = new Cat;
+	else if (id == "Dog") animal = new Dog;
+	else if (id == "Bird") animal = new Bird;
+
+	return animal;
+}
+
 int main() {
+	std::string selection;
 
-	// read file (input file)
-	{
-		std::ifstream inFile("Assets/Data/data.txt");
-		if (inFile.is_open()) {
-			std::string str;
-			while (std::getline(inFile, str)) {
-				std::cout << str << std::endl;
-			}
-		}
-		else {
-			std::cout << "could not load: Assets/Data/data.txt\n";
-		}
-	}
+	std::cout << "Select Animal: ";
+	std::cin >> selection;
 
-	// write file (output file)
-	{
-		std::ofstream outFile("Assets/Data/data.txt", std::ios::app);
-		if (outFile.is_open()) {
-			outFile << "\nI want to buy a new coffee machine.\n";
-		}
-	}
-
-	// read/write (input/output)
-	{
-		std::fstream ioFile("Assets/Data/data.txt", std::ios::in | std::ios::out | std::ios::app);
-		if (ioFile.is_open()) {
-			// input
-			ioFile << "Add a line.\n";
-			ioFile.seekg(0);
-			// output
-			std::string str;
-			while(std::getline(ioFile, str)) {
-				std::cout << str << std::endl;
-			}
-		}
-	}
-
-	{ 
-		std::string name;
-		int score;
-		bool isAlive;
-		
-		//save game data
-		bool save = false;
-		if (save) {
-			name = "Abbey";
-			score = 143;
-			isAlive = true;
-
-			// save game data
-			std::ofstream file("Assets/Data/game.txt", std::ios::app);
-			if (file.is_open()) {
-				file << name << "\n";
-				file << score << "\n";
-				file << std::boolalpha << isAlive << "\n";
-			}
-		}
-
-		//load game data
-		bool load = true;
-		if (load) {
-			//load game
-			std::ifstream file("Assets/Data/data.txt");
-			if (file.is_open()) {
-				std::getline(file, name);
-
-				std::string str;
-				std::getline(file, str);
-
-				file >> score;
-				file >> std::boolalpha >> isAlive;
-
-			}
-		}
-
-		//display game data
-		std::cout << name << "\n";
-		std::cout << score << "\n";
-		std::cout << std::boolalpha << isAlive << "\n";
-	}
-
+	auto animal = AnimalFactory(selection);
+	if (animal) animal->speak();
 
 	return 0;
 

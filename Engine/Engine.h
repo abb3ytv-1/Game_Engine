@@ -6,6 +6,7 @@
 #include "ParticleSystem.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "StringUtils.h"
 
 namespace nu {
 	class Engine {
