@@ -96,6 +96,11 @@ namespace nu {
 		// Shared resources
 		res_t<Font> a_font;
 		res_t<Texture> a_texture;
+		res_t<Texture> a_enemyTexture;
+	res_t<Texture> a_fastEnemyTexture;
+		res_t<Texture> a_bulletTexture;
+		res_t<Texture> a_backgroundTexture;
+		res_t<Texture> a_particleTexture;
 
 		Text a_stateText;
 		Text a_hudText;
@@ -111,6 +116,11 @@ namespace nu {
 		float a_rotationSpeed{ 180.0f };
 		float a_playerInvincibilityTimer{ 0.0f };
 		float a_levelStartTimer{ 0.0f };
+
+	// Angle offset (degrees) to rotate sprite-forward vs model-forward.
+	// Use this when the sprite artwork faces a different direction than the
+	// logical +X model forward. Example: if the sprite points up, set to -90.
+	float a_playerSpriteRotationOffsetDeg{ -90.0f };
 
 		bool a_quit{ false };
 

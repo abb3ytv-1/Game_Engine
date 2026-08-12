@@ -67,6 +67,9 @@ bool Renderer::Initialize( const char* name, int width, int height ) {
 
 	SDL_SetRenderVSync(a_renderer, 1);
 
+	// Enable alpha blending for textures and particles
+	SDL_SetRenderDrawBlendMode(a_renderer, SDL_BLENDMODE_BLEND);
+
 	return true;
 }
 
@@ -134,22 +137,33 @@ void Renderer::DrawModel( const Model& model, const Transform& transform) const 
 	}
 }
 
-void Renderer::DrawTexture( const Texture& texture, const Transform& transform, float scale ) const {
+void Renderer::DrawTexture( const Texture& texture, const Transform& transform, float scale, const Vector2& origin, float alpha ) const {
+	// Delegate to the vector-scale overload
+	DrawTexture(texture, transform, Vector2{ scale, scale }, origin, alpha);
+}
+
+void Renderer::DrawTexture( const Texture& texture, const Transform& transform, const Vector2& scale, const Vector2& origin, float alpha ) const {
 	if (texture.a_texture == nullptr) {
 		return;
 	}
 
 	Vector2 textureSize = texture.GetSize();
 
-	float width = textureSize.x * scale;
-	float height = textureSize.y * scale;
+	float width = textureSize.x * scale.x;
+	float height = textureSize.y * scale.y;
 
 	SDL_FRect destinationRect{
-		transform.position.x - (width * 0.5f),
-		transform.position.y - (height * 0.5f),
+		transform.position.x - (origin.x * width),
+		transform.position.y - (origin.y * height),
 		width,
 		height
 	};
+
+	// Apply texture alpha modulation for fading (alpha in 0.0 - 1.0)
+	Uint8 alphaByte = static_cast<Uint8>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f);
+
+	// Temporarily set texture alpha modulation
+	SDL_SetTextureAlphaMod(texture.a_texture, alphaByte);
 
 	if (!SDL_RenderTextureRotated( a_renderer, texture.a_texture, nullptr, &destinationRect, transform.rotation, nullptr, SDL_FLIP_NONE )) {
 		std::cerr
@@ -157,6 +171,9 @@ void Renderer::DrawTexture( const Texture& texture, const Transform& transform, 
 			<< SDL_GetError()
 			<< '\n';
 	}
+
+	// Restore full alpha to avoid affecting other draws
+	SDL_SetTextureAlphaMod(texture.a_texture, 255);
 }
 
 void Renderer::DrawMesh( const Mesh& mesh, const Transform& transform ) const { 

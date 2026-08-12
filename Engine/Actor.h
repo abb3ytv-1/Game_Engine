@@ -123,6 +123,13 @@ namespace nu {
 		std::shared_ptr<Texture> a_texture;
 		float a_textureScale{ 1.0f };
 
+		// Texture origin (normalized 0..1 where {0.5,0.5} is center)
+		Vector2 a_textureOrigin{ 0.5f, 0.5f };
+
+public:
+		void SetTextureOrigin(const Vector2& origin) { a_textureOrigin = origin; }
+		const Vector2& GetTextureOrigin() const { return a_textureOrigin; }
+
 		// Radius before the actor's scale is applied
 		float a_collisionRadius{ 1.0f };
 

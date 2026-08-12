@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include "Vector2.h"
 
 namespace nu {
 	class Mesh;
@@ -64,7 +65,18 @@ namespace nu {
 		void DrawTexture(
 			const Texture& texture,
 			const Transform& transform,
-			float scale = 1.0f
+			float scale = 1.0f,
+			const Vector2& origin = Vector2{ 0.5f, 0.5f },
+			float alpha = 1.0f
+		) const;
+
+		// Non-uniform scale overload: scale.x and scale.y multiply texture width/height
+		void DrawTexture(
+			const Texture& texture,
+			const Transform& transform,
+			const Vector2& scale,
+			const Vector2& origin = Vector2{ 0.5f, 0.5f },
+			float alpha = 1.0f
 		) const;
 
 		int GetWidth() const {

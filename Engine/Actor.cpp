@@ -54,7 +54,8 @@ namespace nu {
 			renderer.DrawTexture(
 				*a_texture,
 				a_transform,
-				a_textureScale
+				a_textureScale,
+				a_textureOrigin
 			);
 
 			return;

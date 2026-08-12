@@ -17,6 +17,8 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <filesystem>
+#include <algorithm>
 
 using namespace nu;
 
@@ -122,11 +124,19 @@ bool SpaceGame::Initialize() {
 		return false;
 	}
 
-	// Load the shared texture resource.
+	// Load the shared player texture resource (fall back to existing if missing)
 	a_texture = Resources().Get<Texture>(
-		"textures/starwars_PNG51.png",
+		"Textures/large_grey_01.png",
 		engine.GetRenderer()
 	);
+
+	if (a_texture == nullptr) {
+		// fallback to previous sample texture
+		a_texture = Resources().Get<Texture>(
+			"textures/large_grey_01.png",
+			engine.GetRenderer()
+		);
+	}
 
 	if (a_texture == nullptr) {
 		std::cerr
@@ -139,7 +149,7 @@ bool SpaceGame::Initialize() {
 	// that the Resource Manager reuses it.
 	res_t<Texture> reusedTexture =
 		Resources().Get<Texture>(
-			"textures/starwars_PNG51.png",
+			"Textures/large_grey_01.png",
 			engine.GetRenderer()
 		);
 
@@ -158,6 +168,37 @@ bool SpaceGame::Initialize() {
 	a_enemyModel = CreateEnemyModel();
 	a_fastEnemyModel = CreateFastEnemyModel();
 	a_bulletModel = CreateBulletModel();
+
+	// Load sprite textures (optional - fall back to models if missing)
+	a_enemyTexture = Resources().Get<Texture>(
+		"Textures/large_grey_02.png",
+		engine.GetRenderer()
+	);
+
+	a_fastEnemyTexture = Resources().Get<Texture>(
+		"Textures/large_purple_01.png",
+		engine.GetRenderer()
+	);
+
+	a_bulletTexture = Resources().Get<Texture>(
+		"Textures/missile-2.png",
+		engine.GetRenderer()
+	);
+
+	a_backgroundTexture = Resources().Get<Texture>(
+		"Textures/background.png",
+		engine.GetRenderer()
+	);
+
+	a_particleTexture = Resources().Get<Texture>(
+		"Textures/spark_06.png",
+		engine.GetRenderer()
+	);
+
+	// Provide particle texture to the particle system if available
+	if (a_particleTexture != nullptr) {
+		engine.GetPS().SetTexture(a_particleTexture);
+	}
 
 	a_gameState = GameState::StartGame;
 
@@ -211,9 +252,26 @@ void SpaceGame::CreateActors() {
 
 	a_player = playerActor.get();
 
-	a_player->SetTexture(a_texture);
-	a_player->SetTextureScale(0.25f);
+	// Assign texture and compute a texture scale so the sprite matches the
+	// actor's collision radius in world units (width ~= 2 * collision radius).
+	// First set the collision radius, then compute scale from the texture size.
 	a_player->SetCollisionRadius(8.0f);
+	if (a_texture != nullptr) {
+		a_player->SetTexture(a_texture);
+		Vector2 texSize = a_texture->GetSize();
+		if (texSize.x > 0.0f) {
+			float desiredDiameter = a_player->GetCollisionRadius() * 2.0f;
+			float scale = desiredDiameter / texSize.x;
+			// clamp to reasonable range
+			scale = std::clamp(scale, 0.01f, 5.0f);
+			a_player->SetTextureScale(scale);
+		}
+	}
+
+	// Anchor player sprite by top-center so nose points are aligned for firing
+	a_player->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
+
+		// If an enemy texture is available, we'll use it for spawned enemies later.
 
 	a_gameScene.AddActor(
 		std::move(playerActor)
@@ -257,6 +315,22 @@ void SpaceGame::AddEnemy(
 	enemy->SetTarget(*a_player);
 	enemy->SetCollisionRadius(8.0f);
 
+	// If an enemy sprite is loaded, use it and auto-scale to match collision radius
+	if (a_enemyTexture != nullptr) {
+		enemy->SetTexture(a_enemyTexture);
+		Vector2 texSize = a_enemyTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
+			float scale = desiredDiameter / texSize.x;
+			scale = std::clamp(scale, 0.01f, 5.0f);
+			enemy->SetTextureScale(scale);
+		}
+
+		// Anchor enemy sprite top-center
+		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
+	}
+
+
 	a_gameScene.AddActor(
 		std::move(enemy)
 	);
@@ -283,6 +357,32 @@ void SpaceGame::AddFastEnemy(
 
 	enemy->SetTarget(*a_player);
 	enemy->SetCollisionRadius(6.0f);
+
+	// Prefer fast-specific sprite if available, otherwise fall back to enemy texture
+	if (a_fastEnemyTexture != nullptr) {
+		enemy->SetTexture(a_fastEnemyTexture);
+		Vector2 texSize = a_fastEnemyTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
+			float scale = desiredDiameter / texSize.x;
+			scale = std::clamp(scale, 0.01f, 5.0f);
+			enemy->SetTextureScale(scale);
+		}
+		// Anchor fast enemy sprite top-center
+		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
+	}
+	else if (a_enemyTexture != nullptr) {
+		enemy->SetTexture(a_enemyTexture);
+		Vector2 texSize = a_enemyTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
+			float scale = desiredDiameter / texSize.x;
+			scale = std::clamp(scale, 0.01f, 5.0f);
+			enemy->SetTextureScale(scale);
+		}
+		// Anchor fallback enemy sprite top-center
+		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
+	}
 
 	a_gameScene.AddActor(
 		std::move(enemy)
@@ -455,8 +555,11 @@ void SpaceGame::HandleShooting() {
 		return;
 	}
 
+	// Apply a sprite-forward rotation offset so bullets spawn from the
+	// sprite's front regardless of how the artwork is oriented.
 	float rotation =
-		a_player->GetTransform().rotation;
+		a_player->GetTransform().rotation +
+		a_playerSpriteRotationOffsetDeg;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
@@ -476,6 +579,8 @@ void SpaceGame::HandleShooting() {
 		std::make_unique<Bullet>(
 			Transform{
 				bulletPosition,
+				// bullet rotation should match sprite-forward so the projectile
+				// graphic faces the same direction it travels
 				rotation,
 				4.0f
 			},
@@ -483,6 +588,21 @@ void SpaceGame::HandleShooting() {
 			700.0f,
 			2.0f
 		);
+
+	// Set bullet collision radius then assign texture and auto-scale to match
+	bullet->SetCollisionRadius(2.0f);
+	if (a_bulletTexture != nullptr) {
+		bullet->SetTexture(a_bulletTexture);
+		Vector2 texSize = a_bulletTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float desiredDiameter = bullet->GetCollisionRadius() * 2.0f;
+			float scale = desiredDiameter / texSize.x;
+			scale = std::clamp(scale, 0.005f, 5.0f);
+			bullet->SetTextureScale(scale);
+		}
+		// Anchor bullet sprite center so it rotates correctly with travel direction
+		bullet->SetTextureOrigin(Vector2{ 0.5f, 0.5f });
+	}
 
 	a_gameScene.AddActor(
 		std::move(bullet)
@@ -494,36 +614,7 @@ void SpaceGame::HandleShooting() {
 void SpaceGame::HandleMouseInput() {
 	Input& input = engine.GetInput();
 
-	if (
-		input.GetButtonPressed(
-			Input::MouseButton::Left
-		)
-		) {
-		Vector2 position =
-			input.GetMousePosition();
-
-		a_mousePoints.push_back(position);
-		a_startsNewShape.push_back(true);
-	}
-	else if (
-		input.GetMouseDown(
-			Input::MouseButton::Left
-		)
-		) {
-		Vector2 position =
-			input.GetMousePosition();
-
-		if (!a_mousePoints.empty()) {
-			Vector2 difference =
-				position -
-				a_mousePoints.back();
-
-			if (difference.Length() > 10.0f) {
-				a_mousePoints.push_back(position);
-				a_startsNewShape.push_back(false);
-			}
-		}
-	}
+	// Mouse-drawn shapes disabled per user request: do not record mouse points.
 }
 
 void SpaceGame::CheckCollisions() {
@@ -682,11 +773,15 @@ void SpaceGame::CreateExplosion(
 
 		particle.lifespan =
 			RandomFloat(0.5f, 2.0f);
-
 		particle.velocity = Vector2{
 			RandomFloat(-600.0f, 600.0f),
 			RandomFloat(-600.0f, 600.0f)
 		};
+
+		// Visual size and rotation
+		particle.size = RandomFloat(4.0f, 12.0f);
+		particle.rotation = RandomFloat(0.0f, 360.0f);
+		particle.angularVelocity = RandomFloat(-180.0f, 180.0f);
 
 		particleSystem.AddParticle(particle);
 	}
@@ -707,8 +802,11 @@ void SpaceGame::EmitPlayerParticle() {
 		return;
 	}
 
+	// Use the same sprite-forward offset so particle trail emits from the
+	// visual rear of the sprite.
 	float rotation =
-		a_player->GetTransform().rotation;
+		a_player->GetTransform().rotation +
+		a_playerSpriteRotationOffsetDeg;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
@@ -737,7 +835,6 @@ void SpaceGame::EmitPlayerParticle() {
 
 	particle.lifespan =
 		RandomFloat(0.25f, 0.75f);
-
 	particle.velocity =
 		(forward *
 			RandomFloat(-100.0f, -40.0f)) +
@@ -745,6 +842,11 @@ void SpaceGame::EmitPlayerParticle() {
 			RandomFloat(-30.0f, 30.0f),
 			RandomFloat(-30.0f, 30.0f)
 	};
+
+	// Trail particle visual parameters
+	particle.size = RandomFloat(2.0f, 6.0f);
+	particle.rotation = RandomFloat(0.0f, 360.0f);
+	particle.angularVelocity = RandomFloat(-120.0f, 120.0f);
 
 	engine.GetPS().AddParticle(particle);
 }
@@ -953,16 +1055,29 @@ void SpaceGame::Draw(
 		break;
 
 	case GameState::Game:
-		if (a_texture != nullptr) {
-			Transform textureTransform {
-				Vector2{ 30.0f, 30.0f },
-				23.0f,
-				2.0f
+		// Draw background texture if available (scaled to fill screen)
+		if (a_backgroundTexture != nullptr) {
+			float screenW = static_cast<float>(renderer.GetWidth());
+			float screenH = static_cast<float>(renderer.GetHeight());
+			Vector2 texSize = a_backgroundTexture->GetSize();
+			float scale = 1.0f;
+
+			if (texSize.x > 0.0f && texSize.y > 0.0f) {
+				float sx = screenW / texSize.x;
+				float sy = screenH / texSize.y;
+				scale = std::max(sx, sy);
+			}
+
+			Transform bgTransform{
+				Vector2{ screenW * 0.5f, screenH * 0.5f },
+				0.0f,
+				1.0f
 			};
 
 			renderer.DrawTexture(
-				*a_texture,
-				textureTransform
+				*a_backgroundTexture,
+				bgTransform,
+				scale
 			);
 		}
 
@@ -973,20 +1088,7 @@ void SpaceGame::Draw(
 			255
 		);
 
-		for (
-			std::size_t i = 0;
-			i + 1 < a_mousePoints.size();
-			i++
-			) {
-			if (!a_startsNewShape[i + 1]) {
-				renderer.DrawLine(
-					a_mousePoints[i].x,
-					a_mousePoints[i].y,
-					a_mousePoints[i + 1].x,
-					a_mousePoints[i + 1].y
-				);
-			}
-		}
+		// Mouse-drawn shapes disabled per user request — no rendering here.
 
 		Game::Draw(renderer);
 

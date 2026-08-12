@@ -2,6 +2,8 @@
 #include "ParticleSystem.h"
 
 #include "Renderer.h"
+#include "Transform.h"
+#include "Texture.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -49,6 +51,9 @@ void ParticleSystem::Update(float dt) {
 
 		particle.position +=
 			particle.velocity * dt;
+
+		// update rotation
+		particle.rotation += particle.angularVelocity * dt;
 	}
 }
 
@@ -60,17 +65,44 @@ void ParticleSystem::Draw(
 			continue;
 		}
 
-		renderer.SetColor(
-			ToColorChannel(particle.color.r),
-			ToColorChannel(particle.color.g),
-			ToColorChannel(particle.color.b),
-			255
-		);
+		// Compute life ratio for fading/scaling
+		float lifeRatio = 1.0f;
+		if (particle.initialLifespan > 0.0f) {
+			lifeRatio = std::clamp(
+				particle.lifespan / particle.initialLifespan,
+				0.0f,
+				1.0f
+			);
+		}
 
-		renderer.DrawPoint(
-			particle.position.x,
-			particle.position.y
-		);
+		Uint8 alpha = static_cast<Uint8>(lifeRatio * 255.0f);
+
+		// If we have a particle texture, render textured quads with alpha and scaling
+		if (a_texture != nullptr && a_texture->GetSize().x > 0.0f) {
+			Vector2 texSize = a_texture->GetSize();
+			float scale = (particle.size / texSize.x) * lifeRatio; // shrink over life
+
+			Transform t{
+				particle.position,
+				particle.rotation,
+				1.0f
+			};
+
+			renderer.DrawTexture(*a_texture, t, Vector2{ scale, scale }, Vector2{ 0.5f, 0.5f }, lifeRatio);
+		}
+		else {
+			renderer.SetColor(
+				ToColorChannel(particle.color.r),
+				ToColorChannel(particle.color.g),
+				ToColorChannel(particle.color.b),
+				alpha
+			);
+
+			renderer.DrawPoint(
+				particle.position.x,
+				particle.position.y
+			);
+		}
 	}
 }
 
@@ -86,6 +118,16 @@ void ParticleSystem::AddParticle(
 
 	*freeParticle = particle;
 	freeParticle->active = true;
+
+	// Record initial lifespan for fading/scaling
+	if (freeParticle->lifespan > 0.0f) {
+		freeParticle->initialLifespan = freeParticle->lifespan;
+	}
+
+	// Ensure particle size has a reasonable default
+	if (freeParticle->size <= 0.0f) {
+		freeParticle->size = 8.0f;
+	}
 }
 
 Particle* ParticleSystem::GetFreeParticle() {
