@@ -1,0 +1,27 @@
+{
+  "actors": [
+    {
+      "type": "Player",
+      "position": { "x": 960, "y": 540 },
+      "rotation": 0,
+      "scale": 10,
+      "texture": "textures/player.png"
+    },
+    {
+      "type": "Enemy",
+      "position": { "x": 400, "y": 200 },
+      "rotation": 0,
+      "scale": 8,
+      "speed": 100,
+      "texture": "textures/enemy.png"
+    },
+    {
+      "type": "FastEnemy",
+      "position": { "x": 1400, "y": 300 },
+      "rotation": 0,
+      "scale": 6,
+      "speed": 140,
+      "texture": "textures/fast_enemy.png"
+    }
+  ]
+}
