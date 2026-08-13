@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 
+
 namespace nu {
 	std::string GetWorkingDirectory() {
 		std::error_code ec;
