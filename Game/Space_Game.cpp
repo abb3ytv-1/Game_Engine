@@ -6,8 +6,6 @@
 #include "../Engine/MathUtils.h"
 #include "../Engine/ParticleSystem.h"
 #include "../Engine/Random.h"
-#include <fstream>
-#include <sstream>
 
 #include "Assets.h"
 #include "Bullet.h"
