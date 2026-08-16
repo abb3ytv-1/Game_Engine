@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "../Engine/Factory.h"
 
 using namespace nu;
 

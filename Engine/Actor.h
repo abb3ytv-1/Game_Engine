@@ -2,13 +2,15 @@
 
 #include "Transform.h"
 #include "Model.h"
+#include "Object.h"
 
 #include <memory>
+#include <iostream>
 
 namespace nu {
 	class Texture;
 
-	class Actor {
+	class Actor : public Object {
 	public:
 		Actor() = default;
 		virtual ~Actor() = default;
@@ -33,6 +35,10 @@ namespace nu {
 
 		const Transform& GetTransform() const {
 			return a_transform;
+		}
+
+		void SetTransform(const Transform& transform) {
+			a_transform = transform;
 		}
 
 		void SetPosition(const Vector2& position) {
@@ -75,6 +81,11 @@ namespace nu {
 		void SetTexture(
 			const std::shared_ptr<Texture>& texture
 		) {
+#ifdef _DEBUG
+			// Diagnostic output to help trace crashes during development
+			std::cerr << "Actor::SetTexture this=" << static_cast<const void*>(this)
+				<< " incoming=" << static_cast<const void*>(texture.get()) << "\n";
+#endif
 			a_texture = texture;
 		}
 

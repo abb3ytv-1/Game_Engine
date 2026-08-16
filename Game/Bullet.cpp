@@ -1,6 +1,7 @@
 #include "Bullet.h"
 
 #include "MathUtils.h"
+#include "../Engine/Factory.h"
 
 using namespace nu;
 

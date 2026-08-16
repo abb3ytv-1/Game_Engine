@@ -3,144 +3,58 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
-
 namespace nu {
+
+	bool SetWorkingDirectory(const std::string& pathName) {
+		namespace fs = std::filesystem;
+
+		fs::path p = fs::current_path();
+		std::error_code ec;
+
+		// Search current directory and parents for a child path matching pathName
+		while (true) {
+			fs::path candidate = p / pathName;
+			if (fs::exists(candidate, ec) && !ec) {
+				fs::current_path(candidate, ec);
+				return !ec;
+			}
+
+			if (!p.has_parent_path()) break;
+			p = p.parent_path();
+		}
+
+		// Not found
+		return false;
+	}
+
 	std::string GetWorkingDirectory() {
 		std::error_code ec;
-		std::filesystem::path path =
-			std::filesystem::current_path(ec);
-
-		if (ec) {
-			std::cerr << ec.message() << '\n';
-			return {};
-		}
-
-		return path.string();
+		auto p = std::filesystem::current_path(ec);
+		if (ec) return std::string();
+		return p.string();
 	}
 
-	bool SetWorkingDirectory(const std::string& path) {
-		std::error_code ec;
-
-		std::filesystem::current_path(path, ec);
-
-		if (ec) {
-			std::cerr << ec.message() << '\n';
-		}
-
-		return !ec;
-	}
-
-	std::string GetFilename(const std::string& path) {
-		return std::filesystem::path{ path }
-			.filename()
-			.string();
-	}
-
-	std::string GetFileExtension(const std::string& path) {
-		return std::filesystem::path{ path }
-			.extension()
-			.string();
-	}
-
-	std::string GetFilenameNoExtension(const std::string& path) {
-		return std::filesystem::path{ path }
-			.stem()
-			.string();
-	}
-
-	bool FileExists(const std::string& path) {
-		std::error_code ec;
-
-		bool result = std::filesystem::exists(path, ec);
-
-		if (ec) {
-			std::cerr << ec.message() << '\n';
-		}
-
-		return !ec && result;
-	}
-
-	std::vector<std::string> GetFilesInDirectory(
-		const std::string& path
-	) {
-		std::vector<std::string> files;
-		std::error_code ec;
-
-		std::filesystem::directory_iterator iterator{ path, ec };
-
-		if (ec) {
-			std::cerr << ec.message() << '\n';
-			return files;
-		}
-
-		for (const auto& entry : iterator) {
-			if (entry.is_regular_file(ec) && !ec) {
-				files.push_back(entry.path().string());
-			}
-		}
-
-		return files;
-	}
-
-	std::vector<std::string> GetDirectoriesIn(
-		const std::string& path
-	) {
-		std::vector<std::string> directories;
-		std::error_code ec;
-
-		std::filesystem::directory_iterator iterator{ path, ec };
-
-		if (ec) {
-			std::cerr << ec.message() << '\n';
-			return directories;
-		}
-
-		for (const auto& entry : iterator) {
-			if (entry.is_directory(ec) && !ec) {
-				directories.push_back(entry.path().string());
-			}
-		}
-
-		return directories;
-	}
-
-	bool ReadTextFile(
-		const std::string& path,
-		std::string& data
-	) {
-		std::ifstream file{ path };
-
-		if (!file.is_open()) {
-			return false;
-		}
-
-		std::stringstream stream;
-		stream << file.rdbuf();
-
-		data = stream.str();
-
+	bool ReadTextFile(const std::string& path, std::string& out) {
+		std::ifstream ifs(path, std::ios::in);
+		if (!ifs) return false;
+		std::ostringstream ss;
+		ss << ifs.rdbuf();
+		out = ss.str();
 		return true;
 	}
 
-	bool WriteTextFile(
-		const std::string& path,
-		const std::string& data,
-		bool append
-	) {
-		std::ios::openmode mode =
-			append ? std::ios::app : std::ios::out;
+	bool WriteTextFile(const std::string& path, const std::string& contents, bool append) {
+		std::ofstream ofs;
+		if (append)
+			ofs.open(path, std::ios::out | std::ios::app);
+		else
+			ofs.open(path, std::ios::out | std::ios::trunc);
 
-		std::ofstream file{ path, mode };
-
-		if (!file.is_open()) {
-			return false;
-		}
-
-		file << data;
-
+		if (!ofs) return false;
+		ofs << contents;
 		return true;
 	}
+
 }

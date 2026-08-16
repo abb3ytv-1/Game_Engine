@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Enemy.h"
+#include "Factory.h"
 
 namespace nu {
 	void Enemy::Update(float dt) {
@@ -17,4 +18,13 @@ namespace nu {
 
 		Actor::Update(dt);
 	}
+
+// Static registration of Enemy with the Factory so it can be created by name.
+namespace {
+	const bool g_enemyRegistered =
+		nu::Factory::Instance().Register(
+			"Enemy",
+			std::make_unique<nu::Creator<nu::Enemy>>()
+		);
+}
 }

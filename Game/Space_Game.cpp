@@ -10,6 +10,7 @@
 #include "Assets.h"
 #include "Bullet.h"
 #include "Player.h"
+#include "../Engine/Factory.h"
 
 #include <SDL3/SDL.h>
 
@@ -239,8 +240,30 @@ bool SpaceGame::LoadAudio() {
 }
 
 void SpaceGame::CreateActors() {
-	auto playerActor =
-		std::make_unique<Player>(
+	std::unique_ptr<nu::Actor> playerActor =
+		nu::Factory::Instance().CreateActor("Player");
+
+	if (playerActor) {
+		// Configure created player instance
+		playerActor->SetTransform(Transform{
+			Vector2{ 960.0f, 540.0f },
+			0.0f,
+			10.0f
+		});
+
+		// Assign model and type-specific properties
+		playerActor->a_model = a_playerModel;
+		Player* p = dynamic_cast<Player*>(playerActor.get());
+		if (p) {
+			p->SetSpeed(300.0f);
+			a_player = p;
+		}
+	}
+
+	// If factory failed to create a Player, fall back to direct creation to
+	// preserve original behavior.
+	if (a_player == nullptr) {
+		playerActor = std::make_unique<Player>(
 			Transform{
 				Vector2{ 960.0f, 540.0f },
 				0.0f,
@@ -250,12 +273,14 @@ void SpaceGame::CreateActors() {
 			300.0f
 		);
 
-	a_player = playerActor.get();
+		a_player = dynamic_cast<Player*>(playerActor.get());
+	}
 
 	// Assign texture and compute a texture scale so the sprite matches the
 	// actor's collision radius in world units (width ~= 2 * collision radius).
 	// First set the collision radius, then compute scale from the texture size.
-	a_player->SetCollisionRadius(8.0f);
+	if (a_player != nullptr) {
+		a_player->SetCollisionRadius(8.0f);
 	if (a_texture != nullptr) {
 		a_player->SetTexture(a_texture);
 		Vector2 texSize = a_texture->GetSize();
@@ -271,7 +296,9 @@ void SpaceGame::CreateActors() {
 	// Anchor player sprite by top-center so nose points are aligned for firing
 	a_player->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
 
-		// If an enemy texture is available, we'll use it for spawned enemies later.
+	}
+
+	// If an enemy texture is available, we'll use it for spawned enemies later.
 
 	a_gameScene.AddActor(
 		std::move(playerActor)
@@ -301,22 +328,37 @@ void SpaceGame::AddEnemy(
 		return;
 	}
 
-	auto enemy =
-		std::make_unique<Enemy>(
-			Transform{
-				position,
-				0.0f,
-				8.0f
-			},
+	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
+
+	if (enemy) {
+		enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
+		enemy->a_model = a_enemyModel;
+		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
+		if (e) {
+			e->SetTarget(*a_player);
+			e->SetSpeed(speed);
+			e->SetCollisionRadius(8.0f);
+		}
+	}
+
+	// If factory didn't create an enemy, fall back to direct construction
+	if (!enemy) {
+		enemy = std::make_unique<Enemy>(
+			Transform{ position, 0.0f, 8.0f },
 			a_enemyModel,
 			speed
 		);
 
-	enemy->SetTarget(*a_player);
-	enemy->SetCollisionRadius(8.0f);
+		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
+		if (e) {
+			e->SetTarget(*a_player);
+			e->SetSpeed(speed);
+			e->SetCollisionRadius(8.0f);
+		}
+	}
 
 	// If an enemy sprite is loaded, use it and auto-scale to match collision radius
-	if (a_enemyTexture != nullptr) {
+	if (enemy && a_enemyTexture != nullptr) {
 		enemy->SetTexture(a_enemyTexture);
 		Vector2 texSize = a_enemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
@@ -344,22 +386,37 @@ void SpaceGame::AddFastEnemy(
 		return;
 	}
 
-	auto enemy =
-		std::make_unique<Enemy>(
-			Transform{
-				position,
-				0.0f,
-				6.0f
-			},
+	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
+
+	if (enemy) {
+		enemy->SetTransform(Transform{ position, 0.0f, 6.0f });
+		enemy->a_model = a_fastEnemyModel;
+		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
+		if (e) {
+			e->SetTarget(*a_player);
+			e->SetSpeed(speed);
+			e->SetCollisionRadius(6.0f);
+		}
+	}
+
+	// If factory didn't create an enemy, fall back to direct construction
+	if (!enemy) {
+		enemy = std::make_unique<Enemy>(
+			Transform{ position, 0.0f, 6.0f },
 			a_fastEnemyModel,
 			speed
 		);
 
-	enemy->SetTarget(*a_player);
-	enemy->SetCollisionRadius(6.0f);
+		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
+		if (e) {
+			e->SetTarget(*a_player);
+			e->SetSpeed(speed);
+			e->SetCollisionRadius(6.0f);
+		}
+	}
 
 	// Prefer fast-specific sprite if available, otherwise fall back to enemy texture
-	if (a_fastEnemyTexture != nullptr) {
+	if (enemy && a_fastEnemyTexture != nullptr) {
 		enemy->SetTexture(a_fastEnemyTexture);
 		Vector2 texSize = a_fastEnemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
@@ -371,7 +428,7 @@ void SpaceGame::AddFastEnemy(
 		// Anchor fast enemy sprite top-center
 		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
 	}
-	else if (a_enemyTexture != nullptr) {
+	else if (enemy && a_enemyTexture != nullptr) {
 		enemy->SetTexture(a_enemyTexture);
 		Vector2 texSize = a_enemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
@@ -575,23 +632,34 @@ void SpaceGame::HandleShooting() {
 		a_player->GetTransform().position +
 		(forward * spawnDistance);
 
-	auto bullet =
-		std::make_unique<Bullet>(
-			Transform{
-				bulletPosition,
-				// bullet rotation should match sprite-forward so the projectile
-				// graphic faces the same direction it travels
-				rotation,
-				4.0f
-			},
+	std::unique_ptr<nu::Actor> bullet = nu::Factory::Instance().CreateActor("Bullet");
+
+	// If factory failed, fall back to direct construction
+	if (!bullet) {
+		bullet = std::make_unique<Bullet>(
+			Transform{ bulletPosition, rotation, 4.0f },
 			a_bulletModel,
 			700.0f,
 			2.0f
 		);
+	} else {
+		// Configure transform, model and bullet-specific properties (replicates Bullet ctor behavior)
+		bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
+		bullet->a_model = a_bulletModel;
 
-	// Set bullet collision radius then assign texture and auto-scale to match
-	bullet->SetCollisionRadius(2.0f);
-	if (a_bulletTexture != nullptr) {
+		// Compute forward velocity like Bullet ctor
+		Vector2 forwardLocal{ 1.0f, 0.0f };
+		forwardLocal = forwardLocal.Rotate(rotation * DegToRad);
+		Bullet* b = dynamic_cast<Bullet*>(bullet.get());
+		if (b) {
+			b->SetVelocity(forwardLocal * 700.0f);
+			b->SetDamping(0.0f);
+			b->SetLifespan(2.0f);
+			b->SetCollisionRadius(2.0f);
+		}
+	}
+
+	if (bullet && a_bulletTexture != nullptr) {
 		bullet->SetTexture(a_bulletTexture);
 		Vector2 texSize = a_bulletTexture->GetSize();
 		if (texSize.x > 0.0f) {

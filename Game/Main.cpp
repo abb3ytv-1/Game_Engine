@@ -5,6 +5,8 @@
 
 #include <filesystem>
 #include "../Engine/File.h"
+#include "../Engine/Factory.h"
+#include "Player.h"
 
 #include <fstream>
 #include <iostream>
@@ -17,7 +19,27 @@ int main() {
 		return 1;
 	}
 
+
+
 	int result = 0;
+
+	// Demo: register Player, create via Factory, and print basic info
+	{
+		using namespace nu;
+
+		// Ensure Player is registered with the Factory (safe if already registered)
+		Factory::Instance().Register("Player", std::make_unique<Creator<Player>>());
+
+		std::unique_ptr<Actor> actor = Factory::Instance().CreateActor("Player");
+
+		bool isActor = (actor != nullptr);
+		Player* p = dynamic_cast<Player*>(actor.get());
+		float radius = isActor ? actor->GetCollisionRadius() : 0.0f;
+
+		std::cout << "Demo: IsActor: " << (isActor ? "true" : "false") << "\n";
+		std::cout << "Demo: IsPlayer: " << (p ? "true" : "false") << "\n";
+		std::cout << "Demo: GetRadius(): " << radius << "\n";
+	}
 
 	{
 	json::Document doc;
