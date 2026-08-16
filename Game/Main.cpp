@@ -1,6 +1,10 @@
 #include "pch.h"
 #include "../Engine/Engine.h"
+#include "../Engine/JsonSimple.h"
 #include "Space_Game.h"
+
+#include <filesystem>
+#include "../Engine/File.h"
 
 #include <fstream>
 #include <iostream>
@@ -13,32 +17,61 @@ int main() {
 		return 1;
 	}
 
-    rapidjson::Document document;
-    if (json::Load("json.txt", document))
-    {
-        std::string name;
-        int age = 0;
-        float speed = 0.0f;
-        bool active = false;
-        nu::Vector2 position;
-        nu::Vector3 color;
-
-        json::Read(document, "name", name);
-        json::Read(document, "age", age);
-        json::Read(document, "speed", speed);
-        json::Read(document, "active", active);
-        json::Read(document, "position", position);
-        json::Read(document, "color", color);
-
-        std::cout << "name: " << name << std::endl;
-        std::cout << "age: " << age << std::endl;
-        std::cout << "speed: " << speed << std::endl;
-        std::cout << "active: " << (active ? "true" : "false") << std::endl;
-        std::cout << "position: (" << position.x << ", " << position.y << ")" << std::endl;
-        std::cout << "color: (" << color.x << ", " << color.y << ", " << color.z << ")" << std::endl;
-    }
-
 	int result = 0;
+
+	{
+	json::Document doc;
+	std::string found;
+	{
+		std::string wd = nu::GetWorkingDirectory();
+		std::filesystem::path p(wd);
+		auto tryPath = [&](const std::filesystem::path &pp) -> bool {
+			std::error_code ec;
+			if (std::filesystem::exists(pp, ec) && !ec) { found = pp.string(); return true; }
+			return false;
+		};
+
+		if (!tryPath(p / std::filesystem::path("json.txt"))) {
+			if (!tryPath(p / std::filesystem::path("Assets") / std::filesystem::path("json.txt"))) {
+				while (true) {
+					if (tryPath(p / std::filesystem::path("Assets") / std::filesystem::path("json.txt"))) break;
+					if (tryPath(p / std::filesystem::path("json.txt"))) break;
+					if (p.has_parent_path()) p = p.parent_path(); else break;
+				}
+			}
+		}
+	}
+
+	if (found.empty()) {
+		std::cout << "Could not find json.txt in working directory or Assets folders.\n";
+	}
+	else if (json::Load(found, doc)) {
+		std::cout << "Loaded JSON from: " << found << "\n";
+			std::string name;
+			int age = 0;
+			float speed = 0.0f;
+			bool active = false;
+			nu::Vector2 position;
+			nu::Vector3 color;
+
+			json::Read(doc, "name", name);
+			json::Read(doc, "age", age);
+			json::Read(doc, "speed", speed);
+			json::Read(doc, "active", active);
+			json::Read(doc, "position", position);
+			json::Read(doc, "color", color);
+
+			std::cout << "name: " << name << std::endl;
+			std::cout << "age: " << age << std::endl;
+			std::cout << "speed: " << speed << std::endl;
+			std::cout << "active: " << (active ? "true" : "false") << std::endl;
+			std::cout << "position: (" << position.x << ", " << position.y << ")" << std::endl;
+			std::cout << "color: (" << color.x << ", " << color.y << ", " << color.z << ")" << std::endl;
+		}
+		else {
+			std::cout << "Could not load json.txt with JsonSimple" << std::endl;
+		}
+	}
 
 	{
 		SpaceGame game;

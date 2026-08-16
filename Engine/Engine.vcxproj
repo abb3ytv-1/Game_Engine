@@ -186,7 +186,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameTime.h" />
-    <ClInclude Include="Json.h" />
+    <ClInclude Include="JsonSimple.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Mesh.h" />
@@ -216,7 +216,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="input.cpp" />
-    <ClCompile Include="Json.cpp" />
+    <ClCompile Include="JsonSimple.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

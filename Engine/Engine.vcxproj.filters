@@ -96,7 +96,7 @@
     <ClInclude Include="StringUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Json.h">
+    <ClInclude Include="JsonSimple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -146,7 +146,7 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Json.cpp">
+    <ClCompile Include="JsonSimple.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
