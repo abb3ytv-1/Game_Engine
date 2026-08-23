@@ -1,6 +1,12 @@
 #include "Space_Game.h"
 
 #include "../Engine/Enemy.h"
+#include "../Engine/PlayerComponent.h"
+#include "../Engine/EnemyAIComponent.h"
+#include "../Engine/BulletComponent.h"
+#include "../Engine/SpriteRendererComponent.h"
+#include "../Engine/CircleCollider2DComponent.h"
+#include "../Engine/RigidBodyComponent.h"
 #include "../Engine/Engine.h"
 #include "../Engine/File.h"
 #include "../Engine/MathUtils.h"
@@ -100,7 +106,7 @@ bool SpaceGame::Initialize() {
 	a_hudText.SetFont(a_font);
 
 	std::string titleMessage =
-		"Fishy Space Adventure | High Score: " +
+		"Space Adventure | High Score: " +
 		std::to_string(a_highScore) +
 		" | Press Enter to Start";
 
@@ -240,62 +246,39 @@ bool SpaceGame::LoadAudio() {
 }
 
 void SpaceGame::CreateActors() {
-	std::unique_ptr<nu::Actor> playerActor =
-		nu::Factory::Instance().CreateActor("Player");
+	// Create a plain Actor and compose it with components for player behavior
+	std::unique_ptr<nu::Actor> playerActor = std::make_unique<nu::Actor>();
+	playerActor->SetTransform(Transform{ Vector2{960.0f, 540.0f}, 0.0f, 10.0f });
+	playerActor->a_model = a_playerModel;
 
-	if (playerActor) {
-		// Configure created player instance
-		playerActor->SetTransform(Transform{
-			Vector2{ 960.0f, 540.0f },
-			0.0f,
-			10.0f
-		});
+	// Attach PlayerComponent with default speed
+	playerActor->AddComponent(std::make_unique<nu::PlayerComponent>(300.0f, 0));
+	// Attach rigid body for movement
+	playerActor->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 
-		// Assign model and type-specific properties
-		playerActor->a_model = a_playerModel;
-		Player* p = dynamic_cast<Player*>(playerActor.get());
-		if (p) {
-			p->SetSpeed(300.0f);
-			a_player = p;
-		}
-	}
+	// Attach collider and renderer will be configured below if textures exist
 
-	// If factory failed to create a Player, fall back to direct creation to
-	// preserve original behavior.
-	if (a_player == nullptr) {
-		playerActor = std::make_unique<Player>(
-			Transform{
-				Vector2{ 960.0f, 540.0f },
-				0.0f,
-				10.0f
-			},
-			a_playerModel,
-			300.0f
-		);
-
-		a_player = dynamic_cast<Player*>(playerActor.get());
-	}
+	// Set a_player pointer to the raw actor for input handling
+	a_player = playerActor.get();
 
 	// Assign texture and compute a texture scale so the sprite matches the
 	// actor's collision radius in world units (width ~= 2 * collision radius).
 	// First set the collision radius, then compute scale from the texture size.
 	if (a_player != nullptr) {
 		a_player->SetCollisionRadius(8.0f);
-	if (a_texture != nullptr) {
-		a_player->SetTexture(a_texture);
-		Vector2 texSize = a_texture->GetSize();
-		if (texSize.x > 0.0f) {
-			float desiredDiameter = a_player->GetCollisionRadius() * 2.0f;
-			float scale = desiredDiameter / texSize.x;
-			// clamp to reasonable range
-			scale = std::clamp(scale, 0.01f, 5.0f);
-			a_player->SetTextureScale(scale);
+		if (a_texture != nullptr) {
+			Vector2 texSize = a_texture->GetSize();
+			if (texSize.x > 0.0f) {
+				float desiredDiameter = a_player->GetCollisionRadius() * 2.0f;
+				float scale = desiredDiameter / texSize.x;
+				// clamp to reasonable range
+				scale = std::clamp(scale, 0.01f, 5.0f);
+				a_player->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_texture, scale, Vector2{0.5f, 0.0f}));
+			}
+			else {
+				a_player->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_texture, 1.0f, Vector2{0.5f,0.0f}));
+			}
 		}
-	}
-
-	// Anchor player sprite by top-center so nose points are aligned for firing
-	a_player->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
-
 	}
 
 	// If an enemy texture is available, we'll use it for spawned enemies later.
@@ -328,48 +311,28 @@ void SpaceGame::AddEnemy(
 		return;
 	}
 
-	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
+	// Compose a plain Actor for the enemy
+	auto enemy = std::make_unique<nu::Actor>();
+	enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
+	enemy->a_model = a_enemyModel;
 
-	if (enemy) {
-		enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
-		enemy->a_model = a_enemyModel;
-		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
-		if (e) {
-			e->SetTarget(*a_player);
-			e->SetSpeed(speed);
-			e->SetCollisionRadius(8.0f);
-		}
-	}
-
-	// If factory didn't create an enemy, fall back to direct construction
-	if (!enemy) {
-		enemy = std::make_unique<Enemy>(
-			Transform{ position, 0.0f, 8.0f },
-			a_enemyModel,
-			speed
-		);
-
-		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
-		if (e) {
-			e->SetTarget(*a_player);
-			e->SetSpeed(speed);
-			e->SetCollisionRadius(8.0f);
-		}
-	}
+	// Attach EnemyAIComponent and set target & speed
+	enemy->AddComponent(std::make_unique<nu::EnemyAIComponent>(a_player, speed));
+	// Attach rigid body so enemy moves
+	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+	enemy->SetCollisionRadius(8.0f);
 
 	// If an enemy sprite is loaded, use it and auto-scale to match collision radius
 	if (enemy && a_enemyTexture != nullptr) {
-		enemy->SetTexture(a_enemyTexture);
 		Vector2 texSize = a_enemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
 			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
 			float scale = desiredDiameter / texSize.x;
 			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->SetTextureScale(scale);
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{0.5f,0.0f}));
+		} else {
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, 1.0f, Vector2{0.5f,0.0f}));
 		}
-
-		// Anchor enemy sprite top-center
-		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
 	}
 
 
@@ -386,59 +349,36 @@ void SpaceGame::AddFastEnemy(
 		return;
 	}
 
-	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
-
-	if (enemy) {
-		enemy->SetTransform(Transform{ position, 0.0f, 6.0f });
-		enemy->a_model = a_fastEnemyModel;
-		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
-		if (e) {
-			e->SetTarget(*a_player);
-			e->SetSpeed(speed);
-			e->SetCollisionRadius(6.0f);
-		}
-	}
-
-	// If factory didn't create an enemy, fall back to direct construction
-	if (!enemy) {
-		enemy = std::make_unique<Enemy>(
-			Transform{ position, 0.0f, 6.0f },
-			a_fastEnemyModel,
-			speed
-		);
-
-		Enemy* e = dynamic_cast<Enemy*>(enemy.get());
-		if (e) {
-			e->SetTarget(*a_player);
-			e->SetSpeed(speed);
-			e->SetCollisionRadius(6.0f);
-		}
-	}
+	// Compose a plain Actor for the fast enemy
+	auto enemy = std::make_unique<nu::Actor>();
+	enemy->SetTransform(Transform{ position, 0.0f, 6.0f });
+	enemy->a_model = a_fastEnemyModel;
+	enemy->AddComponent(std::make_unique<nu::EnemyAIComponent>(a_player, speed));
+	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+	enemy->SetCollisionRadius(6.0f);
 
 	// Prefer fast-specific sprite if available, otherwise fall back to enemy texture
 	if (enemy && a_fastEnemyTexture != nullptr) {
-		enemy->SetTexture(a_fastEnemyTexture);
 		Vector2 texSize = a_fastEnemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
 			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
 			float scale = desiredDiameter / texSize.x;
 			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->SetTextureScale(scale);
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_fastEnemyTexture, scale, Vector2{0.5f,0.0f}));
+		} else {
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_fastEnemyTexture, 1.0f, Vector2{0.5f,0.0f}));
 		}
-		// Anchor fast enemy sprite top-center
-		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
 	}
 	else if (enemy && a_enemyTexture != nullptr) {
-		enemy->SetTexture(a_enemyTexture);
 		Vector2 texSize = a_enemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
 			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
 			float scale = desiredDiameter / texSize.x;
 			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->SetTextureScale(scale);
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{0.5f,0.0f}));
+		} else {
+			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, 1.0f, Vector2{0.5f,0.0f}));
 		}
-		// Anchor fallback enemy sprite top-center
-		enemy->SetTextureOrigin(Vector2{ 0.5f, 0.0f });
 	}
 
 	a_gameScene.AddActor(
@@ -595,9 +535,12 @@ void SpaceGame::HandlePlayerInput(float dt) {
 		direction = direction.Normalized();
 	}
 
-	a_player->SetVelocity(
-		direction * a_player->GetSpeed()
-	);
+	// Get player speed from PlayerComponent
+	if (a_player) {
+		auto* pc = a_player->GetComponent<nu::PlayerComponent>();
+		float speed = pc ? pc->GetSpeed() : 0.0f;
+		a_player->SetVelocity(direction * speed);
+	}
 
 	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) {
 		HandleShooting();
@@ -632,44 +575,31 @@ void SpaceGame::HandleShooting() {
 		a_player->GetTransform().position +
 		(forward * spawnDistance);
 
-	std::unique_ptr<nu::Actor> bullet = nu::Factory::Instance().CreateActor("Bullet");
+	// Compose a plain Actor bullet with a BulletComponent tag
+	std::unique_ptr<nu::Actor> bullet = std::make_unique<nu::Actor>();
+	bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
+	bullet->a_model = a_bulletModel;
 
-	// If factory failed, fall back to direct construction
-	if (!bullet) {
-		bullet = std::make_unique<Bullet>(
-			Transform{ bulletPosition, rotation, 4.0f },
-			a_bulletModel,
-			700.0f,
-			2.0f
-		);
-	} else {
-		// Configure transform, model and bullet-specific properties (replicates Bullet ctor behavior)
-		bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
-		bullet->a_model = a_bulletModel;
-
-		// Compute forward velocity like Bullet ctor
-		Vector2 forwardLocal{ 1.0f, 0.0f };
-		forwardLocal = forwardLocal.Rotate(rotation * DegToRad);
-		Bullet* b = dynamic_cast<Bullet*>(bullet.get());
-		if (b) {
-			b->SetVelocity(forwardLocal * 700.0f);
-			b->SetDamping(0.0f);
-			b->SetLifespan(2.0f);
-			b->SetCollisionRadius(2.0f);
-		}
-	}
+	// Compute forward velocity like Bullet ctor
+	Vector2 forwardLocal{ 1.0f, 0.0f };
+	forwardLocal = forwardLocal.Rotate(rotation * DegToRad);
+	bullet->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+	bullet->SetVelocity(forwardLocal * 700.0f);
+	bullet->SetDamping(0.0f);
+	bullet->SetLifespan(2.0f);
+	bullet->SetCollisionRadius(2.0f);
+	bullet->AddComponent(std::make_unique<nu::BulletComponent>());
 
 	if (bullet && a_bulletTexture != nullptr) {
-		bullet->SetTexture(a_bulletTexture);
 		Vector2 texSize = a_bulletTexture->GetSize();
 		if (texSize.x > 0.0f) {
 			float desiredDiameter = bullet->GetCollisionRadius() * 2.0f;
 			float scale = desiredDiameter / texSize.x;
 			scale = std::clamp(scale, 0.005f, 5.0f);
-			bullet->SetTextureScale(scale);
+			bullet->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_bulletTexture, scale, Vector2{0.5f,0.5f}));
+		} else {
+			bullet->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_bulletTexture, 1.0f, Vector2{0.5f,0.5f}));
 		}
-		// Anchor bullet sprite center so it rotates correctly with travel direction
-		bullet->SetTextureOrigin(Vector2{ 0.5f, 0.5f });
 	}
 
 	a_gameScene.AddActor(
@@ -691,51 +621,23 @@ void SpaceGame::CheckCollisions() {
 
 	// Bullet and enemy collisions
 	for (auto& actor : actors) {
-		Bullet* bullet =
-			dynamic_cast<Bullet*>(
-				actor.get()
-				);
-
-		if (
-			bullet == nullptr ||
-			bullet->IsDestroyed()
-			) {
-			continue;
-		}
+		// Identify bullets by tag component
+		auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
+		if (bulletTag == nullptr || actor->IsDestroyed()) continue;
 
 		for (auto& otherActor : actors) {
-			Enemy* enemy =
-				dynamic_cast<Enemy*>(
-					otherActor.get()
-					);
+			auto* enemyAI = otherActor->GetComponent<nu::EnemyAIComponent>();
+			if (enemyAI == nullptr || otherActor->IsDestroyed()) continue;
 
-			if (
-				enemy == nullptr ||
-				enemy->IsDestroyed()
-				) {
-				continue;
-			}
+			if (actor->IsColliding(*otherActor)) {
+				Vector2 explosionPosition = otherActor->GetTransform().position;
 
-			if (bullet->IsColliding(*enemy)) {
-				Vector2 explosionPosition =
-					enemy->GetTransform().position;
+				actor->Destroy();
+				otherActor->Destroy();
 
-				bullet->Destroy();
-				enemy->Destroy();
+				engine.GetAudio().PlaySound("clap");
 
-				engine.GetAudio().PlaySound(
-					"clap"
-				);
-
-				CreateExplosion(
-					explosionPosition,
-					Color{
-						1.0f,
-						0.65f,
-						0.2f
-					},
-					100
-				);
+				CreateExplosion(explosionPosition, Color{ 1.0f, 0.65f, 0.2f }, 100);
 
 				a_score++;
 				UpdateHUDText();
@@ -746,43 +648,23 @@ void SpaceGame::CheckCollisions() {
 	}
 
 	// Player and enemy collisions
-	if (
-		a_player == nullptr ||
-		a_player->IsDestroyed() ||
-		a_playerInvincibilityTimer > 0.0f
-		) {
+	if (a_player == nullptr || a_player->IsDestroyed() || a_playerInvincibilityTimer > 0.0f) {
 		return;
 	}
 
 	bool gameOver = false;
 
 	for (auto& actor : actors) {
-		Enemy* enemy =
-			dynamic_cast<Enemy*>(
-				actor.get()
-				);
+		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
+		if (enemyAI == nullptr || actor->IsDestroyed()) continue;
 
-		if (
-			enemy == nullptr ||
-			enemy->IsDestroyed()
-			) {
-			continue;
-		}
+		if (!a_player->IsColliding(*actor)) continue;
 
-		if (!a_player->IsColliding(*enemy)) {
-			continue;
-		}
+		Vector2 collisionPosition = actor->GetTransform().position;
 
-		Vector2 collisionPosition =
-			enemy->GetTransform().position;
+		actor->Destroy();
 
-		enemy->Destroy();
-
-		CreateExplosion(
-			collisionPosition,
-			Color{ 1.0f, 0.2f, 0.2f },
-			75
-		);
+		CreateExplosion(collisionPosition, Color{ 1.0f, 0.2f, 0.2f }, 75);
 
 		a_lives--;
 
@@ -790,27 +672,13 @@ void SpaceGame::CheckCollisions() {
 
 		UpdateHUDText();
 
-		if (a_lives <= 0) {
-			gameOver = true;
-			break;
-		}
+		if (a_lives <= 0) { gameOver = true; break; }
 
-		Renderer& renderer =
-			engine.GetRenderer();
+		Renderer& renderer = engine.GetRenderer();
 
-		a_player->SetPosition(
-			Vector2{
-				renderer.GetWidth() * 0.5f,
-				renderer.GetHeight() * 0.5f
-			}
-		);
-
-		a_player->SetVelocity(
-			Vector2{ 0.0f, 0.0f }
-		);
-
+		a_player->SetPosition(Vector2{ renderer.GetWidth() * 0.5f, renderer.GetHeight() * 0.5f });
+		a_player->SetVelocity(Vector2{ 0.0f, 0.0f });
 		a_player->SetRotation(0.0f);
-
 		a_playerInvincibilityTimer = 1.5f;
 		break;
 	}
@@ -966,23 +834,13 @@ void SpaceGame::EndGame() {
 }
 
 bool SpaceGame::HasActiveEnemies() const {
-	for (
-		const auto& actor :
-		a_gameScene.GetActors()
-		) {
-		const Enemy* enemy =
-			dynamic_cast<const Enemy*>(
-				actor.get()
-				);
-
-		if (
-			enemy != nullptr &&
-			!enemy->IsDestroyed()
-			) {
+	for (const auto& actor : a_gameScene.GetActors()) {
+		// Detect enemies by EnemyAIComponent so component-based actors are recognized
+		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
+		if (enemyAI != nullptr && !actor->IsDestroyed()) {
 			return true;
 		}
 	}
-
 	return false;
 }
 

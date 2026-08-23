@@ -94,74 +94,18 @@ namespace {
 }
 
 Model nu::CreatePlayerModel() {
-	return CreateFishModel(
-		Color{ 0.45f, 0.85f, 0.80f },
-		Color{ 1.0f, 0.72f, 0.25f },
-		Color{ 0.65f, 0.45f, 0.90f },
-		Color{ 0.95f, 0.45f, 0.70f },
-		Color{ 1.0f, 1.0f, 1.0f }
-	);
+	// Return an empty model so no fish geometry is drawn. Visuals are handled by sprites.
+	return Model();
 }
 
 Model nu::CreateEnemyModel() {
-	return CreateFishModel(
-		Color{ 1.0f, 0.2f, 0.2f },
-		Color{ 0.7f, 0.0f, 0.0f },
-		Color{ 0.8f, 0.1f, 0.1f },
-		Color{ 0.6f, 0.0f, 0.0f },
-		Color{ 0.0f, 0.0f, 0.0f }
-	);
+	// Return empty model to avoid drawing fish shapes.
+	return Model();
 }
 
 Model nu::CreateFastEnemyModel() {
-	std::vector<Vector2> bodyPoints{
-		Vector2{ -5.0f, 0.0f },
-		Vector2{ -2.0f, -2.0f },
-		Vector2{ 3.0f, -2.0f },
-		Vector2{ 7.0f, 0.0f },
-		Vector2{ 3.0f, 2.0f },
-		Vector2{ -2.0f, 2.0f },
-		Vector2{ -5.0f, 0.0f }
-	};
-
-	std::vector<Vector2> tailPoints{
-		Vector2{ -5.0f, 0.0f },
-		Vector2{ -8.0f, -3.0f },
-		Vector2{ -7.0f, 0.0f },
-		Vector2{ -8.0f, 3.0f },
-		Vector2{ -5.0f, 0.0f }
-	};
-
-	std::vector<Vector2> eyePoints{
-		Vector2{ 4.0f, -1.0f },
-		Vector2{ 5.0f, -1.0f },
-		Vector2{ 5.0f, 0.0f },
-		Vector2{ 4.0f, 0.0f },
-		Vector2{ 4.0f, -1.0f }
-	};
-
-	Mesh bodyMesh{
-		bodyPoints,
-		Color{ 0.75f, 0.2f, 1.0f }
-	};
-
-	Mesh tailMesh{
-		tailPoints,
-		Color{ 1.0f, 0.25f, 0.75f }
-	};
-
-	Mesh eyeMesh{
-		eyePoints,
-		Color{ 1.0f, 1.0f, 1.0f }
-	};
-
-	Model model;
-
-	model.AddMesh(bodyMesh);
-	model.AddMesh(tailMesh);
-	model.AddMesh(eyeMesh);
-
-	return model;
+	// No fish geometry for fast enemy either.
+	return Model();
 }
 
 Model nu::CreateBulletModel() {

@@ -6,6 +6,10 @@
 
 #include <memory>
 #include <iostream>
+#include <vector>
+#include <type_traits>
+#include "Component.h"
+#include "RigidBodyComponent.h"
 
 namespace nu {
 	class Texture;
@@ -33,6 +37,22 @@ namespace nu {
 			const class Renderer& renderer
 		) const;
 
+		// Component support
+		void AddComponent(std::unique_ptr<Component> comp);
+
+		template<typename T>
+		T* GetComponent() {
+			for (auto& c : a_components) {
+				T* t = dynamic_cast<T*>(c.get());
+				if (t) return t;
+			}
+			return nullptr;
+		}
+
+		// Deep-copy support for components
+		Actor(const Actor& other);
+		Actor& operator=(const Actor& other);
+
 		const Transform& GetTransform() const {
 			return a_transform;
 		}
@@ -53,20 +73,39 @@ namespace nu {
 			a_transform.scale = scale;
 		}
 
-		const Vector2& GetVelocity() const {
-			return a_velocity;
+		// Velocity and damping are managed by RigidBodyComponent when present.
+		Vector2 GetVelocity() const {
+			auto* rb = const_cast<Actor*>(this)->GetComponent<nu::RigidBodyComponent>();
+			if (rb) return rb->GetVelocity();
+			return Vector2{0.0f, 0.0f};
 		}
 
 		void SetVelocity(const Vector2& velocity) {
-			a_velocity = velocity;
+			auto* rb = GetComponent<nu::RigidBodyComponent>();
+			if (!rb) {
+				auto rbComp = std::make_unique<nu::RigidBodyComponent>();
+				rbComp->SetVelocity(velocity);
+				AddComponent(std::move(rbComp));
+			} else {
+				rb->SetVelocity(velocity);
+			}
 		}
 
 		float GetDamping() const {
-			return a_damping;
+			auto* rb = const_cast<Actor*>(this)->GetComponent<nu::RigidBodyComponent>();
+			if (rb) return rb->GetDamping();
+			return 1.0f;
 		}
 
 		void SetDamping(float damping) {
-			a_damping = damping;
+			auto* rb = GetComponent<nu::RigidBodyComponent>();
+			if (!rb) {
+				auto rbComp = std::make_unique<nu::RigidBodyComponent>();
+				rbComp->SetDamping(damping);
+				AddComponent(std::move(rbComp));
+			} else {
+				rb->SetDamping(damping);
+			}
 		}
 
 		float GetLifespan() const {
@@ -77,29 +116,7 @@ namespace nu {
 			a_lifespan = lifespan;
 		}
 
-		// Sprite texture
-		void SetTexture(
-			const std::shared_ptr<Texture>& texture
-		) {
-#ifdef _DEBUG
-			// Diagnostic output to help trace crashes during development
-			std::cerr << "Actor::SetTexture this=" << static_cast<const void*>(this)
-				<< " incoming=" << static_cast<const void*>(texture.get()) << "\n";
-#endif
-			a_texture = texture;
-		}
-
-		const std::shared_ptr<Texture>& GetTexture() const {
-			return a_texture;
-		}
-
-		void SetTextureScale(float scale) {
-			a_textureScale = scale;
-		}
-
-		float GetTextureScale() const {
-			return a_textureScale;
-		}
+		// Sprite texture is managed by SpriteRendererComponent
 
 		// Collision
 		void SetCollisionRadius(float radius) {
@@ -130,16 +147,10 @@ namespace nu {
 		float a_damping{ 1.0f };
 		float a_lifespan{ -1.0f };
 
-		// Sprite
-		std::shared_ptr<Texture> a_texture;
-		float a_textureScale{ 1.0f };
-
-		// Texture origin (normalized 0..1 where {0.5,0.5} is center)
-		Vector2 a_textureOrigin{ 0.5f, 0.5f };
+		// Sprite handled by SpriteRendererComponent now
 
 public:
-		void SetTextureOrigin(const Vector2& origin) { a_textureOrigin = origin; }
-		const Vector2& GetTextureOrigin() const { return a_textureOrigin; }
+		// Texture origin is managed by SpriteRendererComponent
 
 		// Radius before the actor's scale is applied
 		float a_collisionRadius{ 1.0f };
@@ -147,5 +158,8 @@ public:
 		bool a_destroyed{ false };
 
 		Model a_model;
+
+		// Components owned by this actor
+		std::vector<std::unique_ptr<Component>> a_components;
 	};
 }

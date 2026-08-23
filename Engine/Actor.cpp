@@ -2,7 +2,7 @@
 #include "Actor.h"
 #include "Renderer.h"
 #include "MathUtils.h"
-#include "Texture.h"
+#include "Component.h"
 
 namespace nu {
 	void Actor::Update(float dt) {
@@ -21,13 +21,7 @@ namespace nu {
 			}
 		}
 
-		// Physics
-		a_transform.position += a_velocity * dt;
-
-		a_velocity *= (
-			1.0f /
-			(1.0f + (a_damping * dt))
-			);
+		// Physics is handled by RigidBodyComponent when attached to the actor.
 
 		// Wrap actors around the screen
 		a_transform.position.x = Wrap(
@@ -41,6 +35,11 @@ namespace nu {
 			1080.0f,
 			a_transform.position.y
 		);
+
+		// Component updates
+		for (auto& comp : a_components) {
+			if (comp) comp->Update(*this, dt);
+		}
 	}
 
 	void Actor::Draw(
@@ -50,21 +49,70 @@ namespace nu {
 			return;
 		}
 
-		if (a_texture != nullptr) {
-			renderer.DrawTexture(
-				*a_texture,
-				a_transform,
-				a_textureScale,
-				a_textureOrigin
+		// Draw model only if it contains meshes. Models may be empty when visuals
+		// are provided by SpriteRendererComponent or when model geometry is disabled.
+		if (!a_model.GetMeshes().empty()) {
+			renderer.DrawModel(
+				a_model,
+				a_transform
 			);
-
-			return;
 		}
 
-		renderer.DrawModel(
-			a_model,
-			a_transform
-		);
+		// Component drawing
+		for (auto& comp : a_components) {
+			if (comp) comp->Draw(renderer, *this);
+		}
+	}
+
+
+	// Add a component and notify it
+	void Actor::AddComponent(std::unique_ptr<Component> comp) {
+		if (!comp) return;
+		comp->OnAttach(*this);
+		a_components.push_back(std::move(comp));
+	}
+
+	Actor::Actor(const Actor& other) {
+		// copy plain data
+		a_transform = other.a_transform;
+		a_velocity = other.a_velocity;
+		a_damping = other.a_damping;
+		a_lifespan = other.a_lifespan;
+		// textures are handled by SpriteRendererComponent now
+		a_collisionRadius = other.a_collisionRadius;
+		a_destroyed = other.a_destroyed;
+		a_model = other.a_model;
+
+		// deep copy components
+		for (auto& comp : other.a_components) {
+			if (comp) {
+				a_components.push_back(comp->Clone());
+			}
+		}
+	}
+
+	Actor& Actor::operator=(const Actor& other) {
+		if (this == &other) return *this;
+
+		// copy plain data
+		a_transform = other.a_transform;
+		a_velocity = other.a_velocity;
+		a_damping = other.a_damping;
+		a_lifespan = other.a_lifespan;
+		// textures are handled by SpriteRendererComponent now
+		a_collisionRadius = other.a_collisionRadius;
+		a_destroyed = other.a_destroyed;
+		a_model = other.a_model;
+
+		// deep copy components
+		a_components.clear();
+		for (auto& comp : other.a_components) {
+			if (comp) {
+				a_components.push_back(comp->Clone());
+			}
+		}
+
+		return *this;
 	}
 
 	bool Actor::IsColliding(

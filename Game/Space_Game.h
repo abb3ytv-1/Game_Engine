@@ -91,7 +91,8 @@ namespace nu {
 		Model a_fastEnemyModel;
 		Model a_bulletModel;
 
-		Player* a_player{ nullptr };
+		// Player actor (use component-based PlayerComponent to access speed/ammo)
+		Actor* a_player{ nullptr };
 
 		// Shared resources
 		res_t<Font> a_font;

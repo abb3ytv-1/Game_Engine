@@ -179,7 +179,11 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Audio.h" />
+    <ClInclude Include="BulletComponent.h" />
+    <ClInclude Include="CircleCollider2DComponent.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EnemyAIComponent.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Factory.h" />
     <ClInclude Include="File.h" />
@@ -195,12 +199,15 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="RigidBodyComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="SpriteRendererComponent.h" />
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
@@ -211,7 +218,9 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="CircleCollider2DComponent.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EnemyAIComponent.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Factory.cpp" />
     <ClCompile Include="File.cpp" />
@@ -228,7 +237,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RigidBodyComponent.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SpriteRendererComponent.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
