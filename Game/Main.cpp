@@ -6,7 +6,6 @@
 #include <filesystem>
 #include "../Engine/File.h"
 #include "../Engine/Factory.h"
-#include "Player.h"
 #include "../Engine/PlayerComponent.h"
 
 #include <fstream>
@@ -24,7 +23,6 @@ int main() {
 
 	int result = 0;
 
-	// Demo: register Player, create via Factory, and print basic info
 	{
 		using namespace nu;
 

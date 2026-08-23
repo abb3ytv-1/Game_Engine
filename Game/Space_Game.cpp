@@ -1,6 +1,5 @@
 #include "Space_Game.h"
 
-#include "../Engine/Enemy.h"
 #include "../Engine/PlayerComponent.h"
 #include "../Engine/EnemyAIComponent.h"
 #include "../Engine/BulletComponent.h"
@@ -14,8 +13,6 @@
 #include "../Engine/Random.h"
 
 #include "Assets.h"
-#include "Bullet.h"
-#include "Player.h"
 #include "../Engine/Factory.h"
 
 #include <SDL3/SDL.h>
@@ -75,7 +72,6 @@ bool SpaceGame::Initialize() {
 
 	LoadHighScore();
 
-	// Load the shared font resource.
 	a_font = Resources().GetWithID<Font>(
 		"game_font",
 		"Fonts/New Moon.ttf",
@@ -86,8 +82,6 @@ bool SpaceGame::Initialize() {
 		return false;
 	}
 
-	// Request the same font again to confirm
-	// that the Resource Manager reuses it.
 	res_t<Font> reusedFont =
 		Resources().GetWithID<Font>(
 			"game_font",

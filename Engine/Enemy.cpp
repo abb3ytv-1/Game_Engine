@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Enemy.h"
 #include "Factory.h"
+#include "RigidBodyComponent.h"
 
 namespace nu {
 	void Enemy::Update(float dt) {
@@ -13,18 +14,17 @@ namespace nu {
 				direction = direction.Normalized();
 			}
 
-			a_velocity = direction * a_speed;
+			SetVelocity(direction * a_speed);
 		}
 
 		Actor::Update(dt);
 	}
 
-// Static registration of Enemy with the Factory so it can be created by name.
-namespace {
-	const bool g_enemyRegistered =
-		nu::Factory::Instance().Register(
-			"Enemy",
-			std::make_unique<nu::Creator<nu::Enemy>>()
-		);
-}
+	namespace {
+		const bool g_enemyRegistered =
+			nu::Factory::Instance().Register(
+				"Enemy",
+				std::make_unique<nu::Creator<nu::Enemy>>()
+			);
+	}
 }

@@ -19,8 +19,8 @@ namespace nu {
 		float GetDamping() const { return a_damping; }
 		void SetDamping(float d) { a_damping = d; }
 
-		float a_damping{ 1.0f };
 	private:
 		Vector2 a_velocity{ 0.0f, 0.0f };
+		float a_damping{ 1.0f };
 	};
 }

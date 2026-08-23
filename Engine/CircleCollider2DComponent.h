@@ -2,16 +2,36 @@
 
 #include "Component.h"
 
-namespace nu {
-	class CircleCollider2DComponent : public Component {
+namespace nu
+{
+	class CircleCollider2DComponent : public Component
+	{
 	public:
 		CircleCollider2DComponent() = default;
-		CircleCollider2DComponent(float radius) : a_radius(radius) {}
+
+		explicit CircleCollider2DComponent(float radius)
+			: a_radius(radius)
+		{}
 
 		std::unique_ptr<Component> Clone() const override;
 
-		void OnAttach(Actor& actor) override;
+		float GetRadius() const
+		{
+			return a_radius;
+		}
 
+		void SetRadius(float radius)
+		{
+			a_radius = radius;
+		}
+
+		bool IsColliding(
+			const Actor& actor,
+			const CircleCollider2DComponent& other,
+			const Actor& otherActor
+		) const;
+
+	private:
 		float a_radius{ 1.0f };
 	};
 }

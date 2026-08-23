@@ -15,8 +15,5 @@ namespace nu {
 		actor.SetTransform(Transform{ actor.GetTransform().position + a_velocity * dt, actor.GetTransform().rotation, actor.GetTransform().scale });
 
 		a_velocity *= (1.0f / (1.0f + (a_damping * dt)));
-
-		// Ensure actor-level getters/setters reflect this component's velocity if requested
-		// (Actor forwards to RigidBodyComponent when present)
 	}
 }

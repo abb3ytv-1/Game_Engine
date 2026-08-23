@@ -10,6 +10,7 @@
 #include <type_traits>
 #include "Component.h"
 #include "RigidBodyComponent.h"
+#include "CircleCollider2DComponent.h"
 
 namespace nu {
 	class Texture;
@@ -116,50 +117,57 @@ namespace nu {
 			a_lifespan = lifespan;
 		}
 
-		// Sprite texture is managed by SpriteRendererComponent
-
-		// Collision
-		void SetCollisionRadius(float radius) {
-			a_collisionRadius = radius;
+		void Destroy() {
+			a_destroyed = true;
 		}
-
-		float GetCollisionRadius() const {
-			return (
-				a_collisionRadius *
-				a_transform.scale
-				);
-		}
-
-		bool IsColliding(const Actor& other) const;
 
 		bool IsDestroyed() const {
 			return a_destroyed;
 		}
 
-		void Destroy() {
-			a_destroyed = true;
+		// Collision
+		void SetCollisionRadius(float radius)
+		{
+			auto* collider = GetComponent<CircleCollider2DComponent>();
+
+			if (!collider)
+			{
+				AddComponent(
+					std::make_unique<CircleCollider2DComponent>(radius)
+				);
+			}
+			else
+			{
+				collider->SetRadius(radius);
+			}
 		}
+
+		float GetCollisionRadius() const
+		{
+			auto* collider =
+				const_cast<Actor*>(this)
+				->GetComponent<CircleCollider2DComponent>();
+
+			if (collider)
+			{
+				return collider->GetRadius() * a_transform.scale;
+			}
+
+			return 0.0f;
+		}
+
+		bool IsColliding(const Actor& other) const;
 
 	protected:
 		Transform a_transform;
-		Vector2 a_velocity{ 0.0f, 0.0f };
 
-		float a_damping{ 1.0f };
 		float a_lifespan{ -1.0f };
 
-		// Sprite handled by SpriteRendererComponent now
-
 public:
-		// Texture origin is managed by SpriteRendererComponent
-
-		// Radius before the actor's scale is applied
-		float a_collisionRadius{ 1.0f };
-
 		bool a_destroyed{ false };
 
 		Model a_model;
 
-		// Components owned by this actor
 		std::vector<std::unique_ptr<Component>> a_components;
 	};
 }

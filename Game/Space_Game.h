@@ -12,8 +12,6 @@
 #include <vector>
 
 namespace nu {
-	class Player;
-
 	class SpaceGame : public Game {
 	public:
 		enum class GameState {

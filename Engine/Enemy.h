@@ -15,7 +15,6 @@ namespace nu {
 			Actor{ transform, model },
 			a_speed{ speed }
 		{
-			// This is multiplied by the enemy's scale.
 			SetCollisionRadius(8.0f);
 		}
 
