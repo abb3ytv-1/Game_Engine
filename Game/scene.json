@@ -1,0 +1,66 @@
+{
+    "prototypes": {
+        "player": {
+            "type": "Actor",
+            "tag": "Player",
+            "transform": {
+                "position": [960.0, 540.0],
+                "rotation": 0.0,
+                "scale": 10.0
+            },
+            "components": [
+                {
+                    "type": "Player",
+                    "speed": 300.0,
+                    "ammo": 0
+                },
+                {
+                    "type": "RigidBody"
+                }
+            ]
+        },
+
+        "enemy": {
+            "type": "Actor",
+            "tag": "Enemy",
+            "transform": {
+                "position": [0.0, 0.0],
+                "rotation": 0.0,
+                "scale": 8.0
+            },
+            "components": [
+                {
+                    "type": "EnemyAI",
+                    "speed": 100.0
+                },
+                {
+                    "type": "RigidBody"
+                }
+            ]
+        },
+
+        "bullet": {
+            "type": "Actor",
+            "tag": "Bullet",
+            "transform": {
+                "position": [0.0, 0.0],
+                "rotation": 0.0,
+                "scale": 4.0
+            },
+            "components": [
+                {
+                    "type": "Bullet"
+                },
+                {
+                    "type": "RigidBody"
+                }
+            ]
+        }
+    },
+
+    "actors": [
+        {
+            "prototype": "player"
+        }
+    ]
+}

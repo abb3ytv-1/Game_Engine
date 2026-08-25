@@ -1,27 +1,44 @@
 #pragma once
 
+#include <rapidjson/document.h>
 #include <string>
-#include <map>
+
 #include "Vector2.h"
-#include "Vector3.h"
 
-namespace json {
+namespace nu::json
+{
+	bool Load(
+		const std::string& filename,
+		rapidjson::Document& document
+	);
 
-struct Document {
-	std::map<std::string, std::string> strings;
-	std::map<std::string, double> numbers;
-	std::map<std::string, bool> bools;
-	std::map<std::string, nu::Vector2> vec2s;
-	std::map<std::string, nu::Vector3> vec3s;
-};
+	bool Read(
+		const rapidjson::Value& value,
+		const std::string& name,
+		int& data
+	);
 
-bool Load(const std::string& filename, Document& doc);
+	bool Read(
+		const rapidjson::Value& value,
+		const std::string& name,
+		float& data
+	);
 
-bool Read(const Document& doc, const std::string& key, std::string& outValue);
-bool Read(const Document& doc, const std::string& key, int& outValue);
-bool Read(const Document& doc, const std::string& key, float& outValue);
-bool Read(const Document& doc, const std::string& key, bool& outValue);
-bool Read(const Document& doc, const std::string& key, nu::Vector2& outValue);
-bool Read(const Document& doc, const std::string& key, nu::Vector3& outValue);
+	bool Read(
+		const rapidjson::Value& value,
+		const std::string& name,
+		bool& data
+	);
 
+	bool Read(
+		const rapidjson::Value& value,
+		const std::string& name,
+		std::string& data
+	);
+
+	bool Read(
+		const rapidjson::Value& value,
+		const std::string& name,
+		Vector2& data
+	);
 }

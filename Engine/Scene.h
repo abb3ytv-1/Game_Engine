@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace nu {
@@ -12,6 +13,8 @@ namespace nu {
 	class Scene {
 	public:
 		Scene() = default;
+
+		bool Load(const std::string& filename);
 
 		void AddActor(std::unique_ptr<Actor> actor);
 
