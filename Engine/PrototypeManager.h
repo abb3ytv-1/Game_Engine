@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+
 #include <rapidjson/document.h>
 
 namespace nu
@@ -14,6 +15,10 @@ namespace nu
 		bool Load(const rapidjson::Value& prototypes);
 
 		std::unique_ptr<Actor> Instantiate(
+			const std::string& name
+		) const;
+
+		bool HasPrototype(
 			const std::string& name
 		) const;
 

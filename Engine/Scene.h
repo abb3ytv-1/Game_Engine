@@ -8,7 +8,9 @@
 #include <vector>
 
 namespace nu {
+
 	class Renderer;
+	class PrototypeManager;
 
 	class Scene {
 	public:
@@ -18,8 +20,22 @@ namespace nu {
 
 		void AddActor(std::unique_ptr<Actor> actor);
 
+		// Instantiate an actor from a prototype.
+		Actor* Instantiate(
+			const std::string& prototypeName,
+			const Vector2* position = nullptr,
+			float rotation = 0.0f
+		);
+
+		Actor* FindActorByTag(
+			const std::string& tag
+		);
+
 		void Update(float dt);
-		void Draw(const Renderer& renderer) const;
+
+		void Draw(
+			const Renderer& renderer
+		) const;
 
 		void RemoveAll();
 
@@ -47,5 +63,8 @@ namespace nu {
 	private:
 		std::vector<std::unique_ptr<Actor>> a_actors;
 		std::vector<std::unique_ptr<Actor>> a_pendingActors;
+
+		PrototypeManager* a_prototypeManager{ nullptr };
 	};
+
 }

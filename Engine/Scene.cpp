@@ -1,61 +1,124 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Renderer.h"
+#include "Serializer.h"
 
 #include <algorithm>
+#include <iostream>
 #include <utility>
 
 namespace nu {
+
 	void Scene::AddActor(std::unique_ptr<Actor> actor) {
 		if (actor != nullptr) {
-			a_pendingActors.push_back( std::move(actor) );
+			a_pendingActors.push_back(std::move(actor));
 		}
 	}
 
+
+	Actor* Scene::Instantiate(
+		const std::string& prototype
+	) {
+		auto actor =
+			a_prototypeManager.Instantiate(prototype);
+
+		if (actor == nullptr) {
+			std::cerr
+				<< "Failed to instantiate prototype: "
+				<< prototype
+				<< std::endl;
+
+			return nullptr;
+		}
+
+		Actor* result = actor.get();
+
+		AddActor(std::move(actor));
+
+		return result;
+	}
+
+
+	Actor* Scene::FindActorByTag(
+		const std::string& tag
+	) {
+		for (auto& actor : a_actors) {
+			if (actor != nullptr &&
+				actor->GetTag() == tag) {
+				return actor.get();
+			}
+		}
+
+		for (auto& actor : a_pendingActors) {
+			if (actor != nullptr &&
+				actor->GetTag() == tag) {
+				return actor.get();
+			}
+		}
+
+		return nullptr;
+	}
+
+
 	void Scene::AddPendingActors() {
 		for (auto& actor : a_pendingActors) {
-			a_actors.push_back( std::move(actor) );
+			a_actors.push_back(std::move(actor));
 		}
 
 		a_pendingActors.clear();
 	}
 
+
 	void Scene::RemoveDestroyedActors() {
-		a_actors.erase( std::remove_if( a_actors.begin(), a_actors.end(), [](const std::unique_ptr<Actor>& actor) {
-					return ( actor == nullptr || actor->IsDestroyed() );
+		a_actors.erase(
+			std::remove_if(
+				a_actors.begin(),
+				a_actors.end(),
+				[](const std::unique_ptr<Actor>& actor) {
+					return actor == nullptr ||
+						actor->IsDestroyed();
 				}
-			), a_actors.end()
+			),
+			a_actors.end()
 		);
 	}
 
+
 	void Scene::Update(float dt) {
-		// Actors created during the previous frame become active.
+
+		// Actors created during the previous frame
+		// become active.
 		AddPendingActors();
 
-		// Update active actors.
 		for (auto& actor : a_actors) {
-			if ( actor != nullptr && !actor->IsDestroyed() ) {
+			if (actor != nullptr &&
+				!actor->IsDestroyed()) {
+
 				actor->Update(dt);
 			}
 		}
 
-		// Delete actors that were destroyed during Update.
 		RemoveDestroyedActors();
 	}
 
-	void Scene::Draw(const Renderer& renderer) const {
+
+	void Scene::Draw(
+		const Renderer& renderer
+	) const {
+
 		for (const auto& actor : a_actors) {
-			if (
-				actor != nullptr &&
-				!actor->IsDestroyed()
-				) {
+			if (actor != nullptr &&
+				!actor->IsDestroyed()) {
+
 				actor->Draw(renderer);
 			}
 		}
 	}
 
+
 	void Scene::RemoveAll() {
 		a_pendingActors.clear();
 		a_actors.clear();
 	}
+
 }

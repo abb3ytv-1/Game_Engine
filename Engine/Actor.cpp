@@ -69,6 +69,7 @@ namespace nu {
 		a_lifespan = other.a_lifespan;
 		a_destroyed = other.a_destroyed;
 		a_model = other.a_model;
+		a_tag = other.a_tag;
 
 		for (auto& comp : other.a_components)
 		{
@@ -90,6 +91,7 @@ namespace nu {
 		a_lifespan = other.a_lifespan;
 		a_destroyed = other.a_destroyed;
 		a_model = other.a_model;
+		a_tag = other.a_tag;
 
 		a_components.clear();
 

@@ -158,10 +158,19 @@ namespace nu {
 
 		bool IsColliding(const Actor& other) const;
 
+		void SetTag(const std::string& tag) {
+			a_tag = tag;
+		}
+
+		const std::string& GetTag() const {
+			return a_tag;
+		}
+
 	protected:
 		Transform a_transform;
 
 		float a_lifespan{ -1.0f };
+		std::string a_tag;
 
 public:
 		bool a_destroyed{ false };

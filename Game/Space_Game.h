@@ -8,10 +8,13 @@
 #include "Text.h"
 #include "Texture.h"
 #include "Vector2.h"
+#include "../Engine/PrototypeManager.h"
 
 #include <vector>
+#include <memory>
 
 namespace nu {
+
 	class SpaceGame : public Game {
 	public:
 		enum class GameState {
@@ -39,6 +42,7 @@ namespace nu {
 	private:
 		bool LoadAudio();
 
+		// Scene / prototype creation
 		void CreateActors();
 
 		void AddEnemy(
@@ -83,20 +87,21 @@ namespace nu {
 
 	private:
 		Scene a_gameScene;
+		PrototypeManager a_prototypeManager;
 
 		Model a_playerModel;
 		Model a_enemyModel;
 		Model a_fastEnemyModel;
 		Model a_bulletModel;
 
-		// Player actor (use component-based PlayerComponent to access speed/ammo)
 		Actor* a_player{ nullptr };
 
 		// Shared resources
 		res_t<Font> a_font;
+
 		res_t<Texture> a_texture;
 		res_t<Texture> a_enemyTexture;
-	res_t<Texture> a_fastEnemyTexture;
+		res_t<Texture> a_fastEnemyTexture;
 		res_t<Texture> a_bulletTexture;
 		res_t<Texture> a_backgroundTexture;
 		res_t<Texture> a_particleTexture;
@@ -116,10 +121,7 @@ namespace nu {
 		float a_playerInvincibilityTimer{ 0.0f };
 		float a_levelStartTimer{ 0.0f };
 
-	// Angle offset (degrees) to rotate sprite-forward vs model-forward.
-	// Use this when the sprite artwork faces a different direction than the
-	// logical +X model forward. Example: if the sprite points up, set to -90.
-	float a_playerSpriteRotationOffsetDeg{ -90.0f };
+		float a_playerSpriteRotationOffsetDeg{ -90.0f };
 
 		bool a_quit{ false };
 
@@ -127,4 +129,5 @@ namespace nu {
 			GameState::StartGame
 		};
 	};
+
 }

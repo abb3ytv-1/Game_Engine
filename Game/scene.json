@@ -1,66 +1,105 @@
 {
-    "prototypes": {
-        "player": {
-            "type": "Actor",
-            "tag": "Player",
-            "transform": {
-                "position": [960.0, 540.0],
-                "rotation": 0.0,
-                "scale": 10.0
-            },
-            "components": [
-                {
-                    "type": "Player",
-                    "speed": 300.0,
-                    "ammo": 0
-                },
-                {
-                    "type": "RigidBody"
-                }
-            ]
-        },
+  "prototypes": {
+    "player": {
+      "type": "Actor",
+      "tag": "Player",
 
-        "enemy": {
-            "type": "Actor",
-            "tag": "Enemy",
-            "transform": {
-                "position": [0.0, 0.0],
-                "rotation": 0.0,
-                "scale": 8.0
-            },
-            "components": [
-                {
-                    "type": "EnemyAI",
-                    "speed": 100.0
-                },
-                {
-                    "type": "RigidBody"
-                }
-            ]
-        },
+      "transform": {
+        "position": [ 960.0, 540.0 ],
+        "rotation": 0.0,
+        "scale": 10.0
+      },
 
-        "bullet": {
-            "type": "Actor",
-            "tag": "Bullet",
-            "transform": {
-                "position": [0.0, 0.0],
-                "rotation": 0.0,
-                "scale": 4.0
-            },
-            "components": [
-                {
-                    "type": "Bullet"
-                },
-                {
-                    "type": "RigidBody"
-                }
-            ]
+      "components": [
+        {
+          "type": "Player",
+          "speed": 300.0,
+          "ammo": 0
+        },
+        {
+          "type": "RigidBody"
+        },
+        {
+          "type": "CircleCollider",
+          "radius": 8.0
         }
+      ]
     },
 
-    "actors": [
+    "enemy": {
+      "type": "Actor",
+      "tag": "Enemy",
+
+      "transform": {
+        "position": [ 0.0, 0.0 ],
+        "rotation": 0.0,
+        "scale": 8.0
+      },
+
+      "components": [
         {
-            "prototype": "player"
+          "type": "EnemyAI",
+          "speed": 100.0
+        },
+        {
+          "type": "RigidBody"
+        },
+        {
+          "type": "CircleCollider",
+          "radius": 8.0
         }
-    ]
+      ]
+    },
+
+    "fastEnemy": {
+      "type": "Actor",
+      "tag": "FastEnemy",
+
+      "transform": {
+        "position": [ 0.0, 0.0 ],
+        "rotation": 0.0,
+        "scale": 6.0
+      },
+
+      "components": [
+        {
+          "type": "EnemyAI",
+          "speed": 175.0
+        },
+        {
+          "type": "RigidBody"
+        },
+        {
+          "type": "CircleCollider",
+          "radius": 6.0
+        }
+      ]
+    },
+
+    "bullet": {
+      "type": "Actor",
+      "tag": "Bullet",
+
+      "lifespan": 2.0,
+
+      "transform": {
+        "position": [ 0.0, 0.0 ],
+        "rotation": 0.0,
+        "scale": 4.0
+      },
+
+      "components": [
+        {
+          "type": "Bullet"
+        },
+        {
+          "type": "RigidBody"
+        },
+        {
+          "type": "CircleCollider",
+          "radius": 2.0
+        }
+      ]
+    }
+  }
 }

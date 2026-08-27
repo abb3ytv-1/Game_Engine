@@ -11,9 +11,9 @@
 #include "../Engine/MathUtils.h"
 #include "../Engine/ParticleSystem.h"
 #include "../Engine/Random.h"
+#include "../Engine/Factory.h"
 
 #include "Assets.h"
-#include "../Engine/Factory.h"
 
 #include <SDL3/SDL.h>
 
@@ -125,14 +125,12 @@ bool SpaceGame::Initialize() {
 		return false;
 	}
 
-	// Load the shared player texture resource (fall back to existing if missing)
 	a_texture = Resources().Get<Texture>(
 		"Textures/large_grey_01.png",
 		engine.GetRenderer()
 	);
 
 	if (a_texture == nullptr) {
-		// fallback to previous sample texture
 		a_texture = Resources().Get<Texture>(
 			"textures/large_grey_01.png",
 			engine.GetRenderer()
@@ -146,8 +144,6 @@ bool SpaceGame::Initialize() {
 		return false;
 	}
 
-	// Request the same texture again to confirm
-	// that the Resource Manager reuses it.
 	res_t<Texture> reusedTexture =
 		Resources().Get<Texture>(
 			"Textures/large_grey_01.png",
@@ -170,7 +166,6 @@ bool SpaceGame::Initialize() {
 	a_fastEnemyModel = CreateFastEnemyModel();
 	a_bulletModel = CreateBulletModel();
 
-	// Load sprite textures (optional - fall back to models if missing)
 	a_enemyTexture = Resources().Get<Texture>(
 		"Textures/large_grey_02.png",
 		engine.GetRenderer()
@@ -196,7 +191,6 @@ bool SpaceGame::Initialize() {
 		engine.GetRenderer()
 	);
 
-	// Provide particle texture to the particle system if available
 	if (a_particleTexture != nullptr) {
 		engine.GetPS().SetTexture(a_particleTexture);
 	}
@@ -240,24 +234,15 @@ bool SpaceGame::LoadAudio() {
 }
 
 void SpaceGame::CreateActors() {
-	// Create a plain Actor and compose it with components for player behavior
 	std::unique_ptr<nu::Actor> playerActor = std::make_unique<nu::Actor>();
 	playerActor->SetTransform(Transform{ Vector2{960.0f, 540.0f}, 0.0f, 10.0f });
 	playerActor->a_model = a_playerModel;
 
-	// Attach PlayerComponent with default speed
 	playerActor->AddComponent(std::make_unique<nu::PlayerComponent>(300.0f, 0));
-	// Attach rigid body for movement
 	playerActor->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 
-	// Attach collider and renderer will be configured below if textures exist
-
-	// Set a_player pointer to the raw actor for input handling
 	a_player = playerActor.get();
 
-	// Assign texture and compute a texture scale so the sprite matches the
-	// actor's collision radius in world units (width ~= 2 * collision radius).
-	// First set the collision radius, then compute scale from the texture size.
 	if (a_player != nullptr) {
 		a_player->SetCollisionRadius(8.0f);
 		if (a_texture != nullptr) {
@@ -265,7 +250,7 @@ void SpaceGame::CreateActors() {
 			if (texSize.x > 0.0f) {
 				float desiredDiameter = a_player->GetCollisionRadius() * 2.0f;
 				float scale = desiredDiameter / texSize.x;
-				// clamp to reasonable range
+
 				scale = std::clamp(scale, 0.01f, 5.0f);
 				a_player->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_texture, scale, Vector2{0.5f, 0.0f}));
 			}
@@ -275,7 +260,6 @@ void SpaceGame::CreateActors() {
 		}
 	}
 
-	// If an enemy texture is available, we'll use it for spawned enemies later.
 
 	a_gameScene.AddActor(
 		std::move(playerActor)
@@ -305,18 +289,13 @@ void SpaceGame::AddEnemy(
 		return;
 	}
 
-	// Compose a plain Actor for the enemy
 	auto enemy = std::make_unique<nu::Actor>();
 	enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
 	enemy->a_model = a_enemyModel;
-
-	// Attach EnemyAIComponent and set target & speed
 	enemy->AddComponent(std::make_unique<nu::EnemyAIComponent>(a_player, speed));
-	// Attach rigid body so enemy moves
 	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 	enemy->SetCollisionRadius(8.0f);
 
-	// If an enemy sprite is loaded, use it and auto-scale to match collision radius
 	if (enemy && a_enemyTexture != nullptr) {
 		Vector2 texSize = a_enemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
@@ -343,7 +322,6 @@ void SpaceGame::AddFastEnemy(
 		return;
 	}
 
-	// Compose a plain Actor for the fast enemy
 	auto enemy = std::make_unique<nu::Actor>();
 	enemy->SetTransform(Transform{ position, 0.0f, 6.0f });
 	enemy->a_model = a_fastEnemyModel;
@@ -351,7 +329,6 @@ void SpaceGame::AddFastEnemy(
 	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 	enemy->SetCollisionRadius(6.0f);
 
-	// Prefer fast-specific sprite if available, otherwise fall back to enemy texture
 	if (enemy && a_fastEnemyTexture != nullptr) {
 		Vector2 texSize = a_fastEnemyTexture->GetSize();
 		if (texSize.x > 0.0f) {
@@ -529,7 +506,6 @@ void SpaceGame::HandlePlayerInput(float dt) {
 		direction = direction.Normalized();
 	}
 
-	// Get player speed from PlayerComponent
 	if (a_player) {
 		auto* pc = a_player->GetComponent<nu::PlayerComponent>();
 		float speed = pc ? pc->GetSpeed() : 0.0f;
@@ -549,8 +525,6 @@ void SpaceGame::HandleShooting() {
 		return;
 	}
 
-	// Apply a sprite-forward rotation offset so bullets spawn from the
-	// sprite's front regardless of how the artwork is oriented.
 	float rotation =
 		a_player->GetTransform().rotation +
 		a_playerSpriteRotationOffsetDeg;
@@ -569,12 +543,10 @@ void SpaceGame::HandleShooting() {
 		a_player->GetTransform().position +
 		(forward * spawnDistance);
 
-	// Compose a plain Actor bullet with a BulletComponent tag
 	std::unique_ptr<nu::Actor> bullet = std::make_unique<nu::Actor>();
 	bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
 	bullet->a_model = a_bulletModel;
 
-	// Compute forward velocity like Bullet ctor
 	Vector2 forwardLocal{ 1.0f, 0.0f };
 	forwardLocal = forwardLocal.Rotate(rotation * DegToRad);
 	bullet->AddComponent(std::make_unique<nu::RigidBodyComponent>());
@@ -606,16 +578,13 @@ void SpaceGame::HandleShooting() {
 void SpaceGame::HandleMouseInput() {
 	Input& input = engine.GetInput();
 
-	// Mouse-drawn shapes disabled per user request: do not record mouse points.
 }
 
 void SpaceGame::CheckCollisions() {
 	auto& actors =
 		a_gameScene.GetActors();
 
-	// Bullet and enemy collisions
 	for (auto& actor : actors) {
-		// Identify bullets by tag component
 		auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
 		if (bulletTag == nullptr || actor->IsDestroyed()) continue;
 
@@ -641,7 +610,6 @@ void SpaceGame::CheckCollisions() {
 		}
 	}
 
-	// Player and enemy collisions
 	if (a_player == nullptr || a_player->IsDestroyed() || a_playerInvincibilityTimer > 0.0f) {
 		return;
 	}
@@ -708,7 +676,6 @@ void SpaceGame::CreateExplosion(
 			RandomFloat(-600.0f, 600.0f)
 		};
 
-		// Visual size and rotation
 		particle.size = RandomFloat(4.0f, 12.0f);
 		particle.rotation = RandomFloat(0.0f, 360.0f);
 		particle.angularVelocity = RandomFloat(-180.0f, 180.0f);
@@ -732,8 +699,6 @@ void SpaceGame::EmitPlayerParticle() {
 		return;
 	}
 
-	// Use the same sprite-forward offset so particle trail emits from the
-	// visual rear of the sprite.
 	float rotation =
 		a_player->GetTransform().rotation +
 		a_playerSpriteRotationOffsetDeg;
@@ -773,7 +738,6 @@ void SpaceGame::EmitPlayerParticle() {
 			RandomFloat(-30.0f, 30.0f)
 	};
 
-	// Trail particle visual parameters
 	particle.size = RandomFloat(2.0f, 6.0f);
 	particle.rotation = RandomFloat(0.0f, 360.0f);
 	particle.angularVelocity = RandomFloat(-120.0f, 120.0f);
@@ -829,7 +793,6 @@ void SpaceGame::EndGame() {
 
 bool SpaceGame::HasActiveEnemies() const {
 	for (const auto& actor : a_gameScene.GetActors()) {
-		// Detect enemies by EnemyAIComponent so component-based actors are recognized
 		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
 		if (enemyAI != nullptr && !actor->IsDestroyed()) {
 			return true;
@@ -975,7 +938,6 @@ void SpaceGame::Draw(
 		break;
 
 	case GameState::Game:
-		// Draw background texture if available (scaled to fill screen)
 		if (a_backgroundTexture != nullptr) {
 			float screenW = static_cast<float>(renderer.GetWidth());
 			float screenH = static_cast<float>(renderer.GetHeight());
@@ -1008,7 +970,6 @@ void SpaceGame::Draw(
 			255
 		);
 
-		// Mouse-drawn shapes disabled per user request — no rendering here.
 
 		Game::Draw(renderer);
 
