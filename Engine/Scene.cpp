@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Renderer.h"
+#include "PrototypeManager.h"
 #include "Serializer.h"
 
 #include <algorithm>
@@ -16,26 +17,18 @@ namespace nu {
 	}
 
 
-	Actor* Scene::Instantiate(
+	std::unique_ptr<Actor> Scene::Instantiate(
 		const std::string& prototype
 	) {
-		auto actor =
-			a_prototypeManager.Instantiate(prototype);
-
-		if (actor == nullptr) {
+		if (a_prototypeManager == nullptr) {
 			std::cerr
-				<< "Failed to instantiate prototype: "
-				<< prototype
+				<< "Scene has no PrototypeManager."
 				<< std::endl;
 
 			return nullptr;
 		}
 
-		Actor* result = actor.get();
-
-		AddActor(std::move(actor));
-
-		return result;
+		return a_prototypeManager->Instantiate(prototype);
 	}
 
 

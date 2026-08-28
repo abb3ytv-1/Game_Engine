@@ -29,6 +29,8 @@ namespace nu {
 			return false;
 		}
 
+		a_physics.Initialize();
+
 		a_time.Reset();
 
 		return true;
@@ -40,6 +42,8 @@ namespace nu {
 		a_audio.Shutdown();
 		a_input.Shutdown();
 		a_renderer.Shutdown();
+		a_physics.Shutdown();
+
 	}
 
 	void Engine::Update() {
@@ -48,5 +52,7 @@ namespace nu {
 		a_audio.Update();
 
 		a_particleSystem.Update(a_time.GetDeltaTime());
+		a_physics.Update(a_time.GetDeltaTime());
+
 	}
 }

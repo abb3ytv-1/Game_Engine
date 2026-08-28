@@ -20,11 +20,8 @@ namespace nu {
 
 		void AddActor(std::unique_ptr<Actor> actor);
 
-		// Instantiate an actor from a prototype.
-		Actor* Instantiate(
-			const std::string& prototypeName,
-			const Vector2* position = nullptr,
-			float rotation = 0.0f
+		std::unique_ptr<Actor> Instantiate(
+			const std::string& prototype
 		);
 
 		Actor* FindActorByTag(
@@ -32,10 +29,7 @@ namespace nu {
 		);
 
 		void Update(float dt);
-
-		void Draw(
-			const Renderer& renderer
-		) const;
+		void Draw(const Renderer& renderer) const;
 
 		void RemoveAll();
 
@@ -64,7 +58,7 @@ namespace nu {
 		std::vector<std::unique_ptr<Actor>> a_actors;
 		std::vector<std::unique_ptr<Actor>> a_pendingActors;
 
-		PrototypeManager* a_prototypeManager{ nullptr };
+		std::unique_ptr<PrototypeManager> a_prototypeManager;
 	};
 
 }

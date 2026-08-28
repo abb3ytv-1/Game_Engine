@@ -7,6 +7,7 @@
 #include "../Engine/File.h"
 #include "../Engine/Factory.h"
 #include "../Engine/PlayerComponent.h"
+
 #include <rapidjson/document.h>
 #include <fstream>
 #include <iostream>
@@ -14,24 +15,22 @@
 
 using namespace nu;
 
-int main() {
-	if (!engine.Initialize()) {
-		return 1;
-	}
+int main()
+{
+    if (!engine.Initialize())
+    {
+        return 1;
+    }
 
+    int result = 0;
 
+    {
+        SpaceGame game;
+        result = game.Run();
+    }
 
-	int result = 0;
+    engine.Shutdown();
 
-	{
-		using namespace nu;
-
-	{
-		SpaceGame game;
-		result = game.Run();
-	}
-
-	engine.Shutdown();
-
-	return result;
+    return result;
 }
+
