@@ -7,7 +7,42 @@
 #ifndef PCH_H
 #define PCH_H
 
-// add headers that you want to pre-compile here
-#include "framework.h"
+// ============================================================
+// Standard Library
+// ============================================================
 
-#endif //PCH_H
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+// ============================================================
+// SDL
+// ============================================================
+
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+
+// ============================================================
+// FMOD
+// ============================================================
+
+#include <fmod.hpp>
+
+// ============================================================
+// Box2D
+// ============================================================
+
+#include <box2d/box2d.h>
+
+#endif // PCH_H
