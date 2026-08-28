@@ -911,9 +911,42 @@ void SpaceGame::SaveHighScore() {
 	);
 }
 
-void SpaceGame::Draw(
-	const Renderer& renderer
-) {
+void SpaceGame::DrawPhysicsDemo(const Renderer& renderer) {
+	Physics& physics = engine.GetPhysics();
+
+	const b2BodyId* bodies = physics.GetDemoBodies();
+	int bodyCount = physics.GetDemoBodyCount();
+
+	const float pixelsPerMeter = 05.0f;
+	
+	// center
+	const float screenCenterX = renderer.GetWidth() * 0.5f;
+	const float screenCenterY = renderer.GetHeight() * 0.5f;
+
+	// ground
+	renderer.SetColor(120, 120, 120, 255);
+
+	renderer.DrawFillRect(screenCenterX - (10.0f * pixelsPerMeter), screenCenterY + (5.0f * pixelsPerMeter), 20.0f * pixelsPerMeter, 1.0f * pixelsPerMeter);
+
+	// falling boxes
+	renderer.SetColor( 80, 180, 255, 255 );
+
+	for (int i = 0; i < bodyCount; i++) {
+		if (!b2Body_IsValid(bodies[i])) {
+			continue;
+		}
+
+		b2Vec2 position = b2Body_GetPosition(bodies[i]);
+
+		float screenX = screenCenterX + (position.x * pixelsPerMeter);
+
+		float screenY = screenCenterY - (position.y * pixelsPerMeter);
+
+		renderer.DrawFillRect( screenX - pixelsPerMeter, screenY - pixelsPerMeter, pixelsPerMeter * 2.0f, pixelsPerMeter * 2.0f );
+	}
+}
+
+void SpaceGame::Draw(const Renderer& renderer) {
 	renderer.SetColor(0, 0, 0, 255);
 	renderer.Clear();
 
@@ -972,6 +1005,8 @@ void SpaceGame::Draw(
 
 
 		Game::Draw(renderer);
+
+		DrawPhysicsDemo(renderer);
 
 		engine.GetPS().Draw(renderer);
 

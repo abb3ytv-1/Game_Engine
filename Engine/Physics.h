@@ -13,7 +13,16 @@ namespace nu {
 
 		b2WorldId GetWorldId() const { return a_worldId; }
 
+		const b2BodyId* GetDemoBodies() const {
+			return a_demoBodies;
+		}
+
+		int GetDemoBodyCount() const {
+			return 3;
+		}
+
 	private:
 		b2WorldId a_worldId;
+		b2BodyId a_demoBodies[3]{};
 	};
 }

@@ -28,7 +28,7 @@ namespace nu
             dynamicBodyDef.type = b2_dynamicBody;
             dynamicBodyDef.position = b2Vec2{ -3.0f + (i * 3.0f), 5.0f + (i * 2.0f) };
 
-            b2BodyId dynamicBody = b2CreateBody( a_worldId, &dynamicBodyDef );
+            a_demoBodies[i] = b2CreateBody(a_worldId, &dynamicBodyDef);
 
             b2Polygon box = b2MakeBox(1.0f, 1.0f);
 
@@ -38,7 +38,7 @@ namespace nu
             boxShapeDef.material.friction = 0.3f;
             boxShapeDef.material.restitution = 0.5f;
 
-            b2CreatePolygonShape( dynamicBody, &boxShapeDef, &box );
+            b2CreatePolygonShape( a_demoBodies[i], &boxShapeDef, &box);
         }
 
         return true;

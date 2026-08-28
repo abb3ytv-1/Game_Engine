@@ -45,6 +45,8 @@ namespace nu {
 		// Scene / prototype creation
 		void CreateActors();
 
+		void DrawPhysicsDemo(const Renderer& renderer);
+
 		void AddEnemy(
 			const Vector2& position,
 			float speed
