@@ -70,7 +70,7 @@ namespace nu {
 			float alpha = 1.0f
 		) const;
 
-		// Non-uniform scale overload: scale.x and scale.y multiply texture width/height
+		// Non-uniform scale overload
 		void DrawTexture(
 			const Texture& texture,
 			const Transform& transform,
@@ -78,6 +78,17 @@ namespace nu {
 			const Vector2& origin = Vector2{ 0.5f, 0.5f },
 			float alpha = 1.0f
 		) const;
+
+		// Draw a portion of a texture using a source rectangle
+		void DrawTexture(
+			const Texture& texture,
+			const Transform& transform,
+			const SDL_FRect& sourceRect,
+			float scale = 1.0f,
+			const Vector2& origin = Vector2{ 0.5f, 0.5f },
+			float alpha = 1.0f
+		) const;
+
 
 		int GetWidth() const {
 			return a_width;

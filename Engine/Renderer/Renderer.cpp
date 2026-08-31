@@ -159,6 +159,8 @@ void Renderer::DrawTexture( const Texture& texture, const Transform& transform, 
 		height
 	};
 
+
+
 	// Apply texture alpha modulation for fading (alpha in 0.0 - 1.0)
 	Uint8 alphaByte = static_cast<Uint8>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f);
 
@@ -174,6 +176,59 @@ void Renderer::DrawTexture( const Texture& texture, const Transform& transform, 
 
 	// Restore full alpha to avoid affecting other draws
 	SDL_SetTextureAlphaMod(texture.a_texture, 255);
+}
+
+void Renderer::DrawTexture(
+	const Texture& texture,
+	const Transform& transform,
+	const SDL_FRect& sourceRect,
+	float scale,
+	const Vector2& origin,
+	float alpha
+) const {
+	if (texture.a_texture == nullptr) {
+		return;
+	}
+
+	float width = sourceRect.w * scale;
+	float height = sourceRect.h * scale;
+
+	SDL_FRect destinationRect{
+		transform.position.x - (origin.x * width),
+		transform.position.y - (origin.y * height),
+		width,
+		height
+	};
+
+	Uint8 alphaByte =
+		static_cast<Uint8>(
+			std::clamp(alpha, 0.0f, 1.0f) * 255.0f
+			);
+
+	SDL_SetTextureAlphaMod(
+		texture.a_texture,
+		alphaByte
+	);
+
+	if (!SDL_RenderTextureRotated(
+		a_renderer,
+		texture.a_texture,
+		&sourceRect,
+		&destinationRect,
+		transform.rotation,
+		nullptr,
+		SDL_FLIP_NONE
+	)) {
+		std::cerr
+			<< "Could not draw texture frame: "
+			<< SDL_GetError()
+			<< '\n';
+	}
+
+	SDL_SetTextureAlphaMod(
+		texture.a_texture,
+		255
+	);
 }
 
 void Renderer::DrawMesh( const Mesh& mesh, const Transform& transform ) const { 
