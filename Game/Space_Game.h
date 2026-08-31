@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Font.h"
-#include "Game.h"
-#include "Model.h"
-#include "Resource.h"
-#include "Scene.h"
-#include "Text.h"
-#include "Texture.h"
-#include "Vector2.h"
-#include "../Engine/PrototypeManager.h"
+#include "../Engine/Renderer/Font.h"
+#include "../Engine/Framework/Game.h"
+#include "../Engine/Renderer/Model.h"
+#include "../Engine/Resources/Resource.h"
+#include "../Engine/Framework/Scene.h"
+#include "../Engine/Renderer/Text.h"
+#include "../Engine/Renderer/Texture.h"
+#include "../Engine/Math/Vector2.h"
+#include "../Engine/Serialization/PrototypeManager.h"
 
 #include <vector>
 #include <memory>

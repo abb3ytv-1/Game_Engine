@@ -1,13 +1,14 @@
-#include "pch.h"
+#include "../Engine/pch.h"
+
 #include "../Engine/Engine.h"
-#include "../Engine/JsonSimple.h"
+#include "../Engine/Serialization/JsonSimple.h"
+#include "../Engine/Core/File.h"
+#include "../Engine/Core/Factory.h"
+#include "../Engine/Framework/PlayerComponent.h"
+
 #include "Space_Game.h"
 
 #include <filesystem>
-#include "../Engine/File.h"
-#include "../Engine/Factory.h"
-#include "../Engine/PlayerComponent.h"
-
 #include <rapidjson/document.h>
 #include <fstream>
 #include <iostream>
@@ -33,4 +34,3 @@ int main()
 
     return result;
 }
-

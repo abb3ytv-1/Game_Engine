@@ -1,8 +1,8 @@
 #include "Assets.h"
 
-#include "../Engine/Mesh.h"
-#include "../Engine/Vector2.h"
-#include "../Engine/Vector3.h"
+#include "../Engine/Renderer/Mesh.h"
+#include "../Engine/Math/Vector2.h"
+#include "../Engine/Math/Vector3.h"
 
 #include <vector>
 

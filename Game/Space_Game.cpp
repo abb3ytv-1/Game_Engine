@@ -1,17 +1,22 @@
 #include "Space_Game.h"
 
-#include "../Engine/PlayerComponent.h"
-#include "../Engine/EnemyAIComponent.h"
-#include "../Engine/BulletComponent.h"
-#include "../Engine/SpriteRendererComponent.h"
-#include "../Engine/CircleCollider2DComponent.h"
-#include "../Engine/RigidBodyComponent.h"
+#include "../Engine/Framework/PlayerComponent.h"
+#include "../Engine/Framework/EnemyAIComponent.h"
+#include "../Engine/Framework/BulletComponent.h"
+
+#include "../Engine/Renderer/SpriteRendererComponent.h"
+#include "../Engine/Renderer/Model.h"
+#include "../Engine/Renderer/ParticleSystem.h"
+
+#include "../Engine/Physics/CircleCollider2DComponent.h"
+#include "../Engine/Physics/RigidBodyComponent.h"
+
+#include "../Engine/Core/File.h"
+#include "../Engine/Math/MathUtils.h"
+#include "../Engine/Core/Random.h"
+#include "../Engine/Core/Factory.h"
+
 #include "../Engine/Engine.h"
-#include "../Engine/File.h"
-#include "../Engine/MathUtils.h"
-#include "../Engine/ParticleSystem.h"
-#include "../Engine/Random.h"
-#include "../Engine/Factory.h"
 
 #include "Assets.h"
 

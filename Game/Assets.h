@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Engine/Model.h"
+#include "../Engine/Renderer/Model.h"
 
 namespace nu {
 	Model CreatePlayerModel();

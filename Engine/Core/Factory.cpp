@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Factory.h"
-#include "Object.h"
-#include "Actor.h"
+#include "../Framework/Object.h"
+#include "../Framework/Actor.h"
 
 namespace nu {
 
