@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Audio.h"
-#include "GameTime.h"
-#include "Input.h"
-#include "ParticleSystem.h"
-#include "Renderer.h"
-#include "ResourceManager.h"
-#include "StringUtils.h"
-#include "Physics.h"
+#include "Audio/Audio.h"
+#include "Core/GameTime.h"
+#include "Input/Input.h"
+#include "Renderer/ParticleSystem.h"
+#include "Renderer/Renderer.h"
+#include "Resources/ResourceManager.h"
+#include "Core/StringUtils.h"
+#include "Physics/Physics.h"
 
 
 namespace nu {

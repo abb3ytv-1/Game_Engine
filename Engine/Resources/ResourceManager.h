@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Resource.h"
-#include "Singleton.h"
+#include "../Core/Singleton.h"
 
 #include <concepts>
 #include <iostream>

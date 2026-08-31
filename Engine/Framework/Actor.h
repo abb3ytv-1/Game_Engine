@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Transform.h"
-#include "Model.h"
+#include "../Math/Transform.h"
+#include "../Renderer/Model.h"
 #include "Object.h"
 
 #include <memory>
@@ -9,8 +9,8 @@
 #include <vector>
 #include <type_traits>
 #include "Component.h"
-#include "RigidBodyComponent.h"
-#include "CircleCollider2DComponent.h"
+#include "../Physics/RigidBodyComponent.h"
+#include "../Physics/CircleCollider2DComponent.h"
 
 namespace nu {
 	class Texture;

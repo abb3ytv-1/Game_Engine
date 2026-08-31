@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "PrototypeManager.h"
 
-#include "PlayerComponent.h"
-#include "RigidBodyComponent.h"
-#include "BulletComponent.h"
-#include "EnemyAIComponent.h"
-#include "CircleCollider2DComponent.h"
+#include "../Framework/PlayerComponent.h"
+#include "../Physics/RigidBodyComponent.h"
+#include "../Framework/BulletComponent.h"
+#include "../Framework/EnemyAIComponent.h"
+#include "../Physics/CircleCollider2DComponent.h"
 
 #include <iostream>
 

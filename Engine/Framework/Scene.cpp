@@ -1,8 +1,8 @@
-#include "pch.h"
+#in#include "pch.h"
 #include "Scene.h"
-#include "Renderer.h"
-#include "PrototypeManager.h"
-#include "Serializer.h"
+#include "../Renderer/Renderer.h"
+#include "../Serialization/PrototypeManager.h"
+#include "../Serialization/Serializer.h"
 
 #include <algorithm>
 #include <iostream>

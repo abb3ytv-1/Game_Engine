@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Actor.h"
+#include "../Framework/Actor.h"
 
 #include <memory>
 #include <string>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "Vector2.h"
+#include "../Math/Vector2.h"
 
 namespace nu {
 	class RigidBodyComponent : public Component {

@@ -3,7 +3,7 @@
 #include <rapidjson/document.h>
 #include <string>
 
-#include "Vector2.h"
+#include "../Math/Vector2.h"
 
 namespace nu::json
 {

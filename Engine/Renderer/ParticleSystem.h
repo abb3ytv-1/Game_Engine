@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vector2.h"
-#include "Vector3.h"
+#include "../Math/Vector2.h"
+#include "../Math/Vector3.h"
 
 #include <cstddef>
 #include <vector>

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "SpriteRendererComponent.h"
 #include "Renderer.h"
-#include "Actor.h"
+#include "../Framework/Actor.h"
 
 namespace nu {
 

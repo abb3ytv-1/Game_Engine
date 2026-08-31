@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Component.h"
+#include "../Framework/Component.h"
+
 
 namespace nu
 {

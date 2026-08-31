@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "Actor.h"
-#include "Renderer.h"
-#include "MathUtils.h"
+#include "../Renderer/Renderer.h"
+#include "../Math/MathUtils.h"
 #include "Component.h"
-#include "CircleCollider2DComponent.h"
+#include "../Physics/CircleCollider2DComponent.h"
 
 namespace nu {
 	void Actor::Update(float dt) {

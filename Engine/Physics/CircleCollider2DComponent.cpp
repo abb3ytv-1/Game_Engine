@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CircleCollider2DComponent.h"
-#include "Actor.h"
+#include "../Framework/Actor.h"
 
 namespace nu
 {

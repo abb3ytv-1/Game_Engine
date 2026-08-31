@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Component.h"
+#include "../Framework/Component.h"
 #include <memory>
-#include "Vector2.h"
+#include "../Math/Vector2.h"
 
 namespace nu {
 	class Texture;

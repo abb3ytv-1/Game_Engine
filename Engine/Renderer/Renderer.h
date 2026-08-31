@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include "Vector2.h"
+#include "../Math/Vector2.h"
 
 namespace nu {
 	class Mesh;

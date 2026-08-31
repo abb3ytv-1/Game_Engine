@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Game.h"
 #include "Scene.h"
-#include "Renderer.h"
+#include "../Renderer/Renderer.h"
 
 namespace nu {
 	void Game::Update(float dt) {
