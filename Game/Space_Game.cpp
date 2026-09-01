@@ -4,6 +4,8 @@
 #include "../Engine/Framework/EnemyAIComponent.h"
 #include "../Engine/Framework/BulletComponent.h"
 
+#include "./Engine/Renderer/SpriteAnimationRendererComponent.h"
+#include "../Engine/Renderer/TextureFrames.h"
 #include "../Engine/Renderer/SpriteRendererComponent.h"
 #include "../Engine/Renderer/Model.h"
 #include "../Engine/Renderer/ParticleSystem.h"
@@ -199,6 +201,26 @@ bool SpaceGame::Initialize() {
 	if (a_particleTexture != nullptr) {
 		engine.GetPS().SetTexture(a_particleTexture);
 	}
+
+	a_animationTexture = Resources().Get<Texture>(
+		"Textures/ghost-idle.png",
+		engine.GetRenderer()
+	);
+
+	if (a_animationTexture == nullptr) {
+		std::cerr << "Could not load ghost animation texture.\n";
+		return false;
+	}
+
+	a_animationFrames =
+		Resources().GetWithID<TextureFrames>(
+			"ghost_idle_frames",
+			"Textures/ghost-idle.png",
+			448,
+			80,
+			64,
+			80
+		);
 
 	a_gameState = GameState::StartGame;
 

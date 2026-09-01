@@ -107,6 +107,8 @@ namespace nu {
 		res_t<Texture> a_bulletTexture;
 		res_t<Texture> a_backgroundTexture;
 		res_t<Texture> a_particleTexture;
+		res_t<Texture> a_animationTexture;
+		res_t<TextureFrames> a_animationFrames;
 
 		Text a_stateText;
 		Text a_hudText;
