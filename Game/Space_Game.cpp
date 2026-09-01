@@ -4,8 +4,8 @@
 #include "../Engine/Framework/EnemyAIComponent.h"
 #include "../Engine/Framework/BulletComponent.h"
 
-#include "./Engine/Renderer/SpriteAnimationRendererComponent.h"
-#include "../Engine/Renderer/TextureFrames.h"
+#include "../Engine/SpriteAnimationRendererComponent.h"
+#include "../Engine/TextureFrames.h"
 #include "../Engine/Renderer/SpriteRendererComponent.h"
 #include "../Engine/Renderer/Model.h"
 #include "../Engine/Renderer/ParticleSystem.h"
@@ -222,6 +222,11 @@ bool SpaceGame::Initialize() {
 			80
 		);
 
+	if (a_animationFrames == nullptr) {
+		std::cerr << "Could not load ghost animation frames.\n";
+		return false;
+	}
+
 	a_gameState = GameState::StartGame;
 
 	return true;
@@ -261,32 +266,48 @@ bool SpaceGame::LoadAudio() {
 }
 
 void SpaceGame::CreateActors() {
-	std::unique_ptr<nu::Actor> playerActor = std::make_unique<nu::Actor>();
-	playerActor->SetTransform(Transform{ Vector2{960.0f, 540.0f}, 0.0f, 10.0f });
+	std::unique_ptr<nu::Actor> playerActor =
+		std::make_unique<nu::Actor>();
+
+	playerActor->SetTransform(
+		Transform{
+			Vector2{960.0f, 540.0f},
+			0.0f,
+			10.0f
+		}
+	);
+
 	playerActor->a_model = a_playerModel;
 
-	playerActor->AddComponent(std::make_unique<nu::PlayerComponent>(300.0f, 0));
-	playerActor->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+	playerActor->AddComponent(
+		std::make_unique<nu::PlayerComponent>(300.0f, 0)
+	);
+
+	playerActor->AddComponent(
+		std::make_unique<nu::RigidBodyComponent>()
+	);
 
 	a_player = playerActor.get();
 
 	if (a_player != nullptr) {
 		a_player->SetCollisionRadius(8.0f);
-		if (a_texture != nullptr) {
-			Vector2 texSize = a_texture->GetSize();
-			if (texSize.x > 0.0f) {
-				float desiredDiameter = a_player->GetCollisionRadius() * 2.0f;
-				float scale = desiredDiameter / texSize.x;
 
-				scale = std::clamp(scale, 0.01f, 5.0f);
-				a_player->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_texture, scale, Vector2{0.5f, 0.0f}));
-			}
-			else {
-				a_player->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_texture, 1.0f, Vector2{0.5f,0.0f}));
-			}
+		if (a_animationTexture != nullptr &&
+			a_animationFrames != nullptr) {
+
+			a_player->AddComponent(
+				std::make_unique<
+				nu::SpriteAnimationRendererComponent
+				>(
+					a_animationTexture,
+					a_animationFrames,
+					1.0f,
+					Vector2{ 0.5f, 0.5f },
+					8.0f
+				)
+			);
 		}
 	}
-
 
 	a_gameScene.AddActor(
 		std::move(playerActor)

@@ -7,6 +7,7 @@
 #include "../Engine/Framework/Scene.h"
 #include "../Engine/Renderer/Text.h"
 #include "../Engine/Renderer/Texture.h"
+#include "../Engine/TextureFrames.h"
 #include "../Engine/Math/Vector2.h"
 #include "../Engine/Serialization/PrototypeManager.h"
 
