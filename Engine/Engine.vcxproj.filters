@@ -148,6 +148,8 @@
     <ClInclude Include="SpriteAnimationRendererComponent.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Tilemap.h" />
+    <ClInclude Include="TilemapRendererComponent.h" />
   </ItemGroup>
   <!-- SOURCE FILES -->
   <ItemGroup>
@@ -222,5 +224,7 @@
     <ClCompile Include="SpriteAnimationRendererComponent.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Tilemap.cpp" />
+    <ClCompile Include="TilemapRendererComponent.cpp" />
   </ItemGroup>
 </Project>

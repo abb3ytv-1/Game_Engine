@@ -218,6 +218,8 @@
     <ClInclude Include="Serialization\Serializer.h" />
     <ClInclude Include="SpriteAnimationRendererComponent.h" />
     <ClInclude Include="TextureFrames.h" />
+    <ClInclude Include="Tilemap.h" />
+    <ClInclude Include="TilemapRendererComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp" />
@@ -250,6 +252,8 @@
     <ClCompile Include="Serialization\PrototypeMananger.cpp" />
     <ClCompile Include="SpriteAnimationRendererComponent.cpp" />
     <ClCompile Include="TextureFrames.cpp" />
+    <ClCompile Include="Tilemap.cpp" />
+    <ClCompile Include="TilemapRendererComponent.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
