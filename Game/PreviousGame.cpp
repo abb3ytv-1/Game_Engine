@@ -309,9 +309,7 @@ void SpaceGame::CreateActors() {
 		}
 	}
 
-	a_gameScene.AddActor(
-		std::move(playerActor)
-	);
+	a_scene->AddActor(std::move(playerActor));
 
 	AddEnemy(
 		Vector2{ 200.0f, 200.0f },
@@ -357,7 +355,7 @@ void SpaceGame::AddEnemy(
 	}
 
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(enemy)
 	);
 }
@@ -400,7 +398,7 @@ void SpaceGame::AddFastEnemy(
 		}
 	}
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(enemy)
 	);
 }
@@ -616,7 +614,7 @@ void SpaceGame::HandleShooting() {
 		}
 	}
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(bullet)
 	);
 
@@ -630,7 +628,7 @@ void SpaceGame::HandleMouseInput() {
 
 void SpaceGame::CheckCollisions() {
 	auto& actors =
-		a_gameScene.GetActors();
+		a_scene->GetActors();
 
 	for (auto& actor : actors) {
 		auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
@@ -794,7 +792,7 @@ void SpaceGame::EmitPlayerParticle() {
 }
 
 void SpaceGame::StartNewGame() {
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 
 	a_player = nullptr;
 	a_score = 0;
@@ -815,7 +813,7 @@ void SpaceGame::StartNewGame() {
 void SpaceGame::EndGame() {
 	engine.GetAudio().PlaySound("cowbell");
 
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 	a_player = nullptr;
 
 	if (a_score > a_highScore) {
@@ -840,13 +838,7 @@ void SpaceGame::EndGame() {
 }
 
 bool SpaceGame::HasActiveEnemies() const {
-	for (const auto& actor : a_gameScene.GetActors()) {
-		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
-		if (enemyAI != nullptr && !actor->IsDestroyed()) {
-			return true;
-		}
-	}
-	return false;
+	return true;
 }
 
 void SpaceGame::StartNextLevel() {
@@ -1083,7 +1075,7 @@ void SpaceGame::Draw(const Renderer& renderer) {
 }
 
 void SpaceGame::Shutdown() {
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 	a_player = nullptr;
 
 	a_texture.reset();

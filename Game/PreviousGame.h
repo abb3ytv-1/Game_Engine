@@ -89,7 +89,6 @@ namespace nu {
 		void SaveHighScore();
 
 	private:
-		Scene a_gameScene;
 		PrototypeManager a_prototypeManager;
 
 		Model a_playerModel;
