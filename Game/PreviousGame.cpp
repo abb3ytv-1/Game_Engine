@@ -838,7 +838,13 @@ void SpaceGame::EndGame() {
 }
 
 bool SpaceGame::HasActiveEnemies() const {
-	return true;
+	for (const auto& actor : a_scene->GetActors()) {
+		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
+		if (enemyAI != nullptr && !actor->IsDestroyed()) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void SpaceGame::StartNextLevel() {
