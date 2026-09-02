@@ -68,7 +68,7 @@ bool FishGame::Initialize() {
 		return false;
 	}
 
-	a_scene = &a_gameScene;
+	a_scene = std::make_unique<Scene>();
 
 	if (!SetWorkingDirectory("FishGame")) {
 		std::cerr

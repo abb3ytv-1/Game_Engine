@@ -1,18 +1,15 @@
 #pragma once
 
+#include <memory>
+
 namespace nu {
 	class Scene;
 	class Renderer;
 
 	class Game {
 	public:
-		Game() = default;
-
-		Game(Scene* scene) :
-			a_scene{ scene }
-		{}
-
-		virtual ~Game() = default;
+		Game();
+		virtual ~Game();
 
 		virtual bool Initialize() {
 			return true;
@@ -26,11 +23,9 @@ namespace nu {
 			const Renderer& renderer
 		);
 
-		void SetScene(Scene* scene) {
-			a_scene = scene;
-		}
+		void SetScene(std::unique_ptr<Scene> scene);
 
 	protected:
-		Scene* a_scene{ nullptr };
+		std::unique_ptr<Scene> a_scene;
 	};
 }
