@@ -10,6 +10,8 @@
 
 namespace nu {
 
+	Scene::~Scene() = default;
+
 	void Scene::AddActor(std::unique_ptr<Actor> actor) {
 		if (actor != nullptr) {
 			a_pendingActors.push_back(std::move(actor));

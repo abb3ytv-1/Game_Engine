@@ -15,6 +15,7 @@ namespace nu {
 	class Scene {
 	public:
 		Scene() = default;
+		~Scene();
 
 		bool Load(const std::string& filename);
 
