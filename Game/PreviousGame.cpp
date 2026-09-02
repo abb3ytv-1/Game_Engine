@@ -1,4 +1,4 @@
-#include "Space_Game.h"
+#include "PreviousGame.h"
 
 #include "../Engine/Framework/PlayerComponent.h"
 #include "../Engine/Framework/EnemyAIComponent.h"
@@ -70,9 +70,9 @@ bool SpaceGame::Initialize() {
 
 	a_scene = &a_gameScene;
 
-	if (!SetWorkingDirectory("Assets")) {
+	if (!SetWorkingDirectory("PreviousGame")) {
 		std::cerr
-			<< "Could not set Assets working directory.\n";
+			<< "Could not set PreviousGame working directory.\n";
 
 		return false;
 	}

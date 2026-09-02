@@ -16,24 +16,34 @@
     <Filter Include="Data">
       <UniqueIdentifier>{7da8d7c3-77ed-4e59-829a-659de554ad42}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PreviousGame">
+      <UniqueIdentifier>{ed833537-cbe9-4c03-9b3c-d6be6828c384}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NewGame">
+      <UniqueIdentifier>{bd007ae5-c871-427b-85e2-b163c1b8ca0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Assets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Space_Game.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="FishGame.cpp">
+      <Filter>NewGame</Filter>
+    </ClCompile>
+    <ClCompile Include="PreviousGame.cpp">
+      <Filter>PreviousGame</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Assets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Space_Game.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="FishGame.h">
+      <Filter>NewGame</Filter>
+    </ClInclude>
+    <ClInclude Include="PreviousGame.h">
+      <Filter>PreviousGame</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
