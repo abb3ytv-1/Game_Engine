@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Enemy.h"
-#include "Factory.h"
-#include "RigidBodyComponent.h"
+#include "./Core/Factory.h"
+#include "./Physics/RigidBodyComponent.h"
 
 namespace nu {
 

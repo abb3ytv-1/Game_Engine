@@ -237,5 +237,6 @@
     <ClCompile Include="Framework\RangedEnemyAIComponent.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="Enemy.cpp" />
   </ItemGroup>
 </Project>
