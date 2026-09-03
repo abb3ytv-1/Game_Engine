@@ -13,6 +13,7 @@ namespace nu {
         int width{ 0 };
         int height{ 0 };
         std::vector<int> tiles;
+        bool hasCollision{ false };
     };
 
     class Tilemap : public Resource {

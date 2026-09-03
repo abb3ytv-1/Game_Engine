@@ -267,14 +267,47 @@ bool FishGame::LoadAudio() {
 }
 
 void FishGame::CreateActors() {
-	// Tilemap
+	// Tilemap - scaled to cover the full screen
 	auto tilemapActor = std::make_unique<nu::Actor>();
+
+	Renderer& renderer = engine.GetRenderer();
+
+	res_t<Tilemap> tilemap =
+		Resources().Get<Tilemap>(
+			"Maps/world.json",
+			renderer
+		);
+
+	float mapScale = 1.0f;
+
+	if (tilemap != nullptr) {
+		float mapPixelWidth =
+			static_cast<float>(tilemap->GetWidth()) *
+			static_cast<float>(tilemap->GetTileWidth());
+
+		float mapPixelHeight =
+			static_cast<float>(tilemap->GetHeight()) *
+			static_cast<float>(tilemap->GetTileHeight());
+
+		if (mapPixelWidth > 0.0f && mapPixelHeight > 0.0f) {
+			float screenW = static_cast<float>(renderer.GetWidth());
+			float screenH = static_cast<float>(renderer.GetHeight());
+
+			mapScale = std::max(
+				screenW / mapPixelWidth,
+				screenH / mapPixelHeight
+			);
+		}
+	}
+	else {
+		std::cerr << "Could not load tilemap resource for scaling.\n";
+	}
 
 	tilemapActor->SetTransform(
 		Transform{
 			Vector2{ 0.0f, 0.0f },
 			0.0f,
-			1.0f
+			mapScale
 		}
 	);
 
@@ -291,52 +324,6 @@ void FishGame::CreateActors() {
 
 	a_scene->AddActor(
 		std::move(tilemapActor)
-	);
-	std::unique_ptr<nu::Actor> playerActor =
-		std::make_unique<nu::Actor>();
-
-	playerActor->SetTransform(
-		Transform{
-			Vector2{160.0f, 120.0f},
-			0.0f,
-			10.0f
-		}
-	);
-
-	playerActor->a_model = a_playerModel;
-
-	playerActor->AddComponent(
-		std::make_unique<nu::PlayerComponent>(300.0f, 0)
-	);
-
-	playerActor->AddComponent(
-		std::make_unique<nu::RigidBodyComponent>()
-	);
-
-	a_player = playerActor.get();
-
-	if (a_player != nullptr) {
-		a_player->SetCollisionRadius(8.0f);
-
-		if (a_animationTexture != nullptr &&
-			a_animationFrames != nullptr) {
-
-			a_player->AddComponent(
-				std::make_unique<
-				nu::SpriteAnimationRendererComponent
-				>(
-					a_animationTexture,
-					a_animationFrames,
-					1.0f,
-					Vector2{ 0.5f, 0.5f },
-					8.0f
-				)
-			);
-		}
-	}
-
-	a_scene->AddActor(
-		std::move(playerActor)
 	);
 
 	AddEnemy(

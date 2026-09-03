@@ -77,6 +77,24 @@ namespace nu {
             layer.height =
                 jsonLayer["height"].GetInt();
 
+            if (jsonLayer.HasMember("properties") && jsonLayer["properties"].IsArray()) {
+                for (const auto& property : jsonLayer["properties"].GetArray()) {
+                    if (!property.HasMember("name") || !property.HasMember("value")) {
+                        continue;
+                    }
+
+                    const std::string propertyName = property["name"].GetString();
+
+                    if (propertyName == "has_collision" && property["value"].IsBool()) {
+                        layer.hasCollision = property["value"].GetBool();
+                    }
+                }
+            }
+
+            for (const auto& tile : jsonLayer["data"].GetArray()) {
+                layer.tiles.push_back(tile.GetInt());
+            }
+
             for (const auto& tile :
                 jsonLayer["data"].GetArray())
             {

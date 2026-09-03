@@ -3,8 +3,11 @@
 #include "Framework/Component.h"
 #include "Tilemap.h"
 
+#include <box2d/box2d.h>
+
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace nu {
 
@@ -14,7 +17,7 @@ namespace nu {
     class TilemapRendererComponent : public Component {
     public:
         TilemapRendererComponent() = default;
-        ~TilemapRendererComponent() override = default;
+        ~TilemapRendererComponent() override;  
 
         std::unique_ptr<Component> Clone() const override;
 
@@ -30,8 +33,14 @@ namespace nu {
         }
 
     private:
+        void CreateCollisionBodies(const Actor& actor) const;  
+
+    private:
         std::string a_tilemapName;
         mutable res_t<Tilemap> a_tilemap;
+
+        mutable bool a_bodiesCreated{ false };              
+        mutable std::vector<b2BodyId> a_collisionBodies;    
     };
 
 }
