@@ -19,6 +19,7 @@
 #include "../Engine/Math/MathUtils.h"
 #include "../Engine/Core/Random.h"
 #include "../Engine/Core/Factory.h"
+#include "../Engine/Enemy.h"
 
 #include "../Engine/Engine.h"
 
@@ -69,6 +70,8 @@ bool FishGame::Initialize() {
 	if (!Game::Initialize()) {
 		return false;
 	}
+
+	nu::RegisterEnemy();
 
 	a_scene = std::make_unique<Scene>();
 
@@ -436,30 +439,55 @@ void FishGame::AddFood(const Vector2& position)
 	a_scene->AddActor(std::move(food));
 }
 
-void FishGame::AddEnemy(const Vector2& position, float speed) {
+void FishGame::AddEnemy(const Vector2& position, float speed)
+{
 	if (a_player == nullptr) {
 		return;
 	}
 
-	auto enemy = std::make_unique<nu::Actor>();
-	enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
-	enemy->a_model = a_enemyModel;
-	enemy->AddComponent(std::make_unique<nu::EnemyAIComponent>(a_player, speed));
-	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
-	enemy->SetCollisionRadius(8.0f);
+	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
 
-	if (enemy && a_enemyTexture != nullptr) {
-		Vector2 texSize = a_enemyTexture->GetSize();
-		if (texSize.x > 0.0f) {
-			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
-			float scale = desiredDiameter / texSize.x;
-			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{0.5f,0.0f}));
-		} else {
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, 1.0f, Vector2{0.5f,0.0f}));
-		}
+	if (!enemy) {
+		std::cerr << "Factory could not create Enemy.\n";
+		return;
 	}
 
+	enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
+	enemy->a_model = a_enemyModel;
+
+	auto* factoryEnemy = dynamic_cast<nu::Enemy*>(enemy.get());
+
+	if (factoryEnemy != nullptr) {
+		factoryEnemy->SetTarget(*a_player);
+		factoryEnemy->SetSpeed(speed);
+	}
+
+	enemy->AddComponent(
+		std::make_unique<nu::RigidBodyComponent>()
+	);
+
+	enemy->SetCollisionRadius(8.0f);
+
+	if (a_enemyTexture != nullptr) {
+		Vector2 texSize = a_enemyTexture->GetSize();
+
+		if (texSize.x > 0.0f) {
+			float desiredDiameter =
+				enemy->GetCollisionRadius() * 2.0f;
+
+			float scale = desiredDiameter / texSize.x;
+
+			scale = std::clamp(scale, 0.01f, 5.0f);
+
+			enemy->AddComponent(
+				std::make_unique<nu::SpriteRendererComponent>(
+					a_enemyTexture,
+					scale,
+					Vector2{ 0.5f, 0.0f }
+				)
+			);
+		}
+	}
 
 	a_scene->AddActor(std::move(enemy));
 }

@@ -155,6 +155,7 @@
     <ClInclude Include="Framework\RangedEnemyAIComponent.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="Enemy.h" />
   </ItemGroup>
   <!-- SOURCE FILES -->
   <ItemGroup>

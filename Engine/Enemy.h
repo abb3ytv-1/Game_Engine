@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Actor.h"
+#include "Framework/Actor.h"
 
 namespace nu {
 	class Enemy : public Actor {
@@ -35,5 +35,9 @@ namespace nu {
 	private:
 		const Actor* a_target = nullptr;
 		float a_speed = 100.0f;
+
 	};
+
+	void RegisterEnemy();
+
 }
