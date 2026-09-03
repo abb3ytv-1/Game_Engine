@@ -9,6 +9,7 @@
 #include "../Engine/Renderer/SpriteRendererComponent.h"
 #include "../Engine/Renderer/Model.h"
 #include "../Engine/Renderer/ParticleSystem.h"
+#include "../Engine/TilemapRendererComponent.h"
 
 #include "../Engine/Physics/CircleCollider2DComponent.h"
 #include "../Engine/Physics/RigidBodyComponent.h"
@@ -266,6 +267,31 @@ bool FishGame::LoadAudio() {
 }
 
 void FishGame::CreateActors() {
+	// Tilemap
+	auto tilemapActor = std::make_unique<nu::Actor>();
+
+	tilemapActor->SetTransform(
+		Transform{
+			Vector2{ 0.0f, 0.0f },
+			0.0f,
+			1.0f
+		}
+	);
+
+	auto tilemapRenderer =
+		std::make_unique<nu::TilemapRendererComponent>();
+
+	tilemapRenderer->SetTilemapName(
+		"Maps/world.json"
+	);
+
+	tilemapActor->AddComponent(
+		std::move(tilemapRenderer)
+	);
+
+	a_scene->AddActor(
+		std::move(tilemapActor)
+	);
 	std::unique_ptr<nu::Actor> playerActor =
 		std::make_unique<nu::Actor>();
 
@@ -309,7 +335,7 @@ void FishGame::CreateActors() {
 		}
 	}
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(playerActor)
 	);
 
@@ -357,7 +383,7 @@ void FishGame::AddEnemy(
 	}
 
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(enemy)
 	);
 }
@@ -400,7 +426,7 @@ void FishGame::AddFastEnemy(
 		}
 	}
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(enemy)
 	);
 }
@@ -616,7 +642,7 @@ void FishGame::HandleShooting() {
 		}
 	}
 
-	a_gameScene.AddActor(
+	a_scene->AddActor(
 		std::move(bullet)
 	);
 
@@ -630,7 +656,7 @@ void FishGame::HandleMouseInput() {
 
 void FishGame::CheckCollisions() {
 	auto& actors =
-		a_gameScene.GetActors();
+		a_scene->GetActors();
 
 	for (auto& actor : actors) {
 		auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
@@ -794,7 +820,7 @@ void FishGame::EmitPlayerParticle() {
 }
 
 void FishGame::StartNewGame() {
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 
 	a_player = nullptr;
 	a_score = 0;
@@ -815,7 +841,7 @@ void FishGame::StartNewGame() {
 void FishGame::EndGame() {
 	engine.GetAudio().PlaySound("cowbell");
 
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 	a_player = nullptr;
 
 	if (a_score > a_highScore) {
@@ -840,7 +866,7 @@ void FishGame::EndGame() {
 }
 
 bool FishGame::HasActiveEnemies() const {
-	for (const auto& actor : a_gameScene.GetActors()) {
+	for (const auto& actor : a_scene->GetActors()) {
 		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
 		if (enemyAI != nullptr && !actor->IsDestroyed()) {
 			return true;
@@ -1083,7 +1109,7 @@ void FishGame::Draw(const Renderer& renderer) {
 }
 
 void FishGame::Shutdown() {
-	a_gameScene.RemoveAll();
+	a_scene->RemoveAll();
 	a_player = nullptr;
 
 	a_texture.reset();

@@ -6,7 +6,7 @@
 #include "../Engine/Core/Factory.h"
 #include "../Engine/Framework/PlayerComponent.h"
 
-#include "./PreviousGame.h"
+#include "./FishGame.h"
 
 #include <filesystem>
 #include <rapidjson/document.h>
@@ -32,7 +32,7 @@ int main()
     int result = 0;
 
     {
-        std::unique_ptr<SpaceGame> game = std::make_unique<SpaceGame>();
+        std::unique_ptr<FishGame> game = std::make_unique<FishGame>();
         result = game->Run();
 
         game.reset();

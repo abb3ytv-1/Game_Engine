@@ -42,14 +42,31 @@ namespace nu {
             return;
         }
 
+        if (a_tilemap->GetTilesetTexture() == nullptr)
+        {
+            return;
+        }
+
+        if (a_tilemap->GetTilesetColumns() <= 0)
+        {
+            return;
+        }
+
         const auto& layers = a_tilemap->GetLayers();
 
         for (const auto& layer : layers)
         {
+            // Prevent division/modulo by zero below.
+            if (layer.width <= 0 || layer.height <= 0)
+            {
+                continue;
+            }
+
             for (int i = 0; i < static_cast<int>(layer.tiles.size()); ++i)
             {
                 const int tileId = layer.tiles[i];
 
+                // Tiled uses 0 for an empty tile.
                 if (tileId <= 0)
                 {
                     continue;
