@@ -23,68 +23,45 @@ namespace nu {
 			StartGame,
 			StartLevel,
 			Game,
-			GameOver
+			LevelComplete,
+			GameOver,
+			Win
 		};
 
 	public:
 		FishGame();
-
 		int Run();
-
 		bool Initialize() override;
 		void Shutdown() override;
-
 		void Update(float dt) override;
-
-		void Draw(
-			const Renderer& renderer
-		) override;
+		void Draw(const Renderer& renderer) override;
 
 	private:
 		bool LoadAudio();
 
 		// Scene / prototype creation
 		void CreateActors();
-
+		void AddFood(const Vector2& position);
 		void DrawPhysicsDemo(const Renderer& renderer);
-
-		void AddEnemy(
-			const Vector2& position,
-			float speed
-		);
-
-		void AddFastEnemy(
-			const Vector2& position,
-			float speed
-		);
-
+		void AddEnemy(const Vector2& position, float speed);
+		void AddFastEnemy(const Vector2& position, float speed);
+		void AddRangedEnemy(const Vector2& position, float speed);
+		void HandleEnemyShooting(float dt);
 		void ProcessEvents();
-
 		void HandleAudioInput();
 		void HandlePlayerInput(float dt);
 		void HandleShooting();
 		void HandleMouseInput();
-
 		void CheckCollisions();
-
-		void CreateExplosion(
-			const Vector2& position,
-			const Color& color,
-			int particleCount = 100
-		);
-
+		void CreateExplosion(const Vector2& position, const Color& color, int particleCount = 100);
 		void EmitPlayerParticle();
-
 		void StartNewGame();
 		void EndGame();
-
+		void WinGame();
 		void UpdateHUDText();
-
 		void StartNextLevel();
 		void SpawnLevelEnemies();
-
 		bool HasActiveEnemies() const;
-
 		void LoadHighScore();
 		void SaveHighScore();
 
@@ -104,10 +81,14 @@ namespace nu {
 		res_t<Texture> a_texture;
 		res_t<Texture> a_enemyTexture;
 		res_t<Texture> a_fastEnemyTexture;
+		res_t<Texture> a_rangedEnemyTexture;
 		res_t<Texture> a_bulletTexture;
+		res_t<Texture> a_foodTexture;
+		res_t<TextureFrames> a_foodAnimationFrames;
 		res_t<Texture> a_backgroundTexture;
 		res_t<Texture> a_particleTexture;
 		res_t<Texture> a_animationTexture;
+		res_t<TextureFrames> a_rangedEnemyFrames;
 		res_t<TextureFrames> a_animationFrames;
 
 		Text a_stateText;
@@ -115,16 +96,18 @@ namespace nu {
 
 		std::vector<Vector2> a_mousePoints;
 		std::vector<bool> a_startsNewShape;
+		std::vector<Actor*> a_foodActors;
 
 		int a_score{ 0 };
 		int a_highScore{ 0 };
 		int a_lives{ 3 };
 		int a_level{ 1 };
+		int a_foodCollected{ 0 };
+		int a_foodRequired{ 5 };
 
 		float a_rotationSpeed{ 180.0f };
 		float a_playerInvincibilityTimer{ 0.0f };
 		float a_levelStartTimer{ 0.0f };
-
 		float a_playerSpriteRotationOffsetDeg{ -90.0f };
 
 		bool a_quit{ false };

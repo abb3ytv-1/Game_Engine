@@ -152,6 +152,9 @@
     <ClInclude Include="Tilemap.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\RangedEnemyAIComponent.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <!-- SOURCE FILES -->
   <ItemGroup>
@@ -229,6 +232,9 @@
     <ClCompile Include="TilemapRendererComponent.cpp" />
     <ClCompile Include="Tilemap.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\RangedEnemyAIComponent.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

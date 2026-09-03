@@ -3,6 +3,7 @@
 #include "../Engine/Framework/PlayerComponent.h"
 #include "../Engine/Framework/EnemyAIComponent.h"
 #include "../Engine/Framework/BulletComponent.h"
+#include "../Engine/Framework/RangedEnemyAIComponent.h"
 
 #include "../Engine/SpriteAnimationRendererComponent.h"
 #include "../Engine/TextureFrames.h"
@@ -184,10 +185,42 @@ bool FishGame::Initialize() {
 		engine.GetRenderer()
 	);
 
+	a_rangedEnemyTexture = Resources().Get<Texture>(
+		"Textures/eye.png",
+		engine.GetRenderer()
+	);
+
+	if (a_rangedEnemyTexture != nullptr) {
+		a_rangedEnemyFrames =
+			Resources().GetWithID<TextureFrames>(
+				"eye_frames",
+				"Textures/eye.png",
+				1200,
+				600,
+				150,
+				600
+			);
+	}
+
 	a_bulletTexture = Resources().Get<Texture>(
 		"Textures/missile-2.png",
 		engine.GetRenderer()
 	);
+
+	a_foodTexture = Resources().Get<Texture>(
+		"Textures/coin.png",
+		engine.GetRenderer()
+	);
+
+	a_foodTexture = Resources().Get<Texture>(
+		"Textures/coin.png",
+		engine.GetRenderer()
+	);
+
+	if (a_foodTexture != nullptr) {
+		a_foodAnimationFrames =
+			Resources().GetWithID<TextureFrames>("coin_frames", "Textures/coin.png", 256, 32, 32, 32);
+	}
 
 	a_backgroundTexture = Resources().Get<Texture>(
 		"Textures/background.png",
@@ -304,48 +337,106 @@ void FishGame::CreateActors() {
 	}
 
 	tilemapActor->SetTransform(
+		Transform{ Vector2{ 0.0f, 0.0f }, 0.0f, mapScale }
+	);
+
+	auto tilemapRenderer = std::make_unique<nu::TilemapRendererComponent>();
+	tilemapRenderer->SetTilemapName("Maps/world.json");
+	tilemapActor->AddComponent(std::move(tilemapRenderer));
+
+	a_scene->AddActor(std::move(tilemapActor));
+
+	// Player - RESTORED (this block had gone missing)
+	std::unique_ptr<nu::Actor> playerActor = std::make_unique<nu::Actor>();
+
+	playerActor->SetTransform(
 		Transform{
-			Vector2{ 0.0f, 0.0f },
+			Vector2{ renderer.GetWidth() * 0.5f, renderer.GetHeight() * 0.5f },
 			0.0f,
-			mapScale
+			10.0f
 		}
 	);
 
-	auto tilemapRenderer =
-		std::make_unique<nu::TilemapRendererComponent>();
+	playerActor->a_model = a_playerModel;
 
-	tilemapRenderer->SetTilemapName(
-		"Maps/world.json"
-	);
+	playerActor->AddComponent(std::make_unique<nu::PlayerComponent>(300.0f, 0));
+	playerActor->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 
-	tilemapActor->AddComponent(
-		std::move(tilemapRenderer)
-	);
+	a_player = playerActor.get();
 
-	a_scene->AddActor(
-		std::move(tilemapActor)
-	);
+	if (a_player != nullptr) {
+		a_player->SetCollisionRadius(8.0f);
 
-	AddEnemy(
-		Vector2{ 200.0f, 200.0f },
-		100.0f
-	);
+		if (a_animationTexture != nullptr && a_animationFrames != nullptr) {
+			a_player->AddComponent(
+				std::make_unique<nu::SpriteAnimationRendererComponent>(
+					a_animationTexture,
+					a_animationFrames,
+					2.0f,
+					Vector2{ 0.5f, 0.5f },
+					8.0f
+				)
+			);
+		}
+	}
 
-	AddEnemy(
-		Vector2{ 1700.0f, 300.0f },
-		125.0f
-	);
+	a_scene->AddActor(std::move(playerActor));
 
-	AddEnemy(
-		Vector2{ 400.0f, 900.0f },
-		75.0f
-	);
+	// Food pickups - collect a_foodRequired of these to win
+	for (int i = 0; i < a_foodRequired; i++) {
+		Vector2 position{
+			RandomFloat(100.0f, static_cast<float>(renderer.GetWidth() - 100)),
+			RandomFloat(100.0f, static_cast<float>(renderer.GetHeight() - 100))
+		};
+
+		AddFood(position);
+	}
+
+	// Enemies
+	AddEnemy(Vector2{ 200.0f, 200.0f }, 100.0f);
+	AddEnemy(Vector2{ 1700.0f, 300.0f }, 125.0f);
+	AddEnemy(Vector2{ 400.0f, 900.0f }, 75.0f);
+	AddRangedEnemy(Vector2{ 900.0f, 700.0f }, 90.0f);
+
 }
 
-void FishGame::AddEnemy(
-	const Vector2& position,
-	float speed
-) {
+void FishGame::AddFood(const Vector2& position)
+{
+	auto food = std::make_unique<nu::Actor>();
+
+	food->SetTransform(Transform{ position, 0.0f, 5.0f });
+
+	food->a_model = a_bulletModel;
+	food->SetCollisionRadius(5.0f);
+
+	if (a_foodTexture != nullptr && a_foodAnimationFrames != nullptr) {
+		const float visualScale = 0.8f;
+
+		food->AddComponent(
+			std::make_unique<nu::SpriteAnimationRendererComponent>(
+				a_foodTexture,
+				a_foodAnimationFrames,
+				visualScale,
+				Vector2{ 0.5f, 0.5f },
+				6.0f
+			)
+		);
+	}
+	else if (a_bulletTexture != nullptr) {
+		Vector2 texSize = a_bulletTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float scale = std::clamp((food->GetCollisionRadius() * 2.0f) / texSize.x, 0.01f, 5.0f);
+			food->AddComponent(
+				std::make_unique<nu::SpriteRendererComponent>(a_bulletTexture, scale, Vector2{ 0.5f, 0.5f })
+			);
+		}
+	}
+
+	a_foodActors.push_back(food.get());
+	a_scene->AddActor(std::move(food));
+}
+
+void FishGame::AddEnemy(const Vector2& position, float speed) {
 	if (a_player == nullptr) {
 		return;
 	}
@@ -370,15 +461,10 @@ void FishGame::AddEnemy(
 	}
 
 
-	a_scene->AddActor(
-		std::move(enemy)
-	);
+	a_scene->AddActor(std::move(enemy));
 }
 
-void FishGame::AddFastEnemy(
-	const Vector2& position,
-	float speed
-) {
+void FishGame::AddFastEnemy(const Vector2& position,float speed) {
 	if (a_player == nullptr) {
 		return;
 	}
@@ -413,9 +499,46 @@ void FishGame::AddFastEnemy(
 		}
 	}
 
-	a_scene->AddActor(
-		std::move(enemy)
+	a_scene->AddActor(std::move(enemy));
+}
+
+void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
+	if (a_player == nullptr) {
+		return;
+	}
+
+	auto enemy = std::make_unique<nu::Actor>();
+	enemy->SetTransform(Transform{ position, 0.0f, 7.0f });
+	enemy->a_model = a_enemyModel;
+	enemy->AddComponent(
+		std::make_unique<nu::RangedEnemyAIComponent>(a_player, speed, 350.0f, 1.5f)
 	);
+	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+	enemy->SetCollisionRadius(7.0f);
+
+	if (a_rangedEnemyTexture != nullptr && a_rangedEnemyFrames != nullptr) {
+		enemy->AddComponent(
+			std::make_unique<nu::SpriteAnimationRendererComponent>(
+				a_rangedEnemyTexture,
+				a_rangedEnemyFrames,
+				0.8f,
+				Vector2{ 0.5f, 0.5f },
+				6.0f
+			)
+		);
+	}
+	else if (a_enemyTexture != nullptr) {
+		// fallback if eye.png/frames failed to load
+		Vector2 texSize = a_enemyTexture->GetSize();
+		if (texSize.x > 0.0f) {
+			float scale = std::clamp((enemy->GetCollisionRadius() * 2.0f) / texSize.x, 0.01f, 5.0f);
+			enemy->AddComponent(
+				std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{ 0.5f, 0.0f })
+			);
+		}
+	}
+
+	a_scene->AddActor(std::move(enemy));
 }
 
 void FishGame::ProcessEvents() {
@@ -428,27 +551,14 @@ void FishGame::ProcessEvents() {
 		}
 
 		if (event.type == SDL_EVENT_KEY_DOWN) {
-			if (
-				event.key.scancode ==
-				SDL_SCANCODE_ESCAPE
-				) {
+			if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
 				a_quit = true;
 				continue;
 			}
 
-			bool enterPressed =
-				event.key.scancode ==
-				SDL_SCANCODE_RETURN ||
-				event.key.scancode ==
-				SDL_SCANCODE_KP_ENTER;
+			bool enterPressed = event.key.scancode == SDL_SCANCODE_RETURN || event.key.scancode == SDL_SCANCODE_KP_ENTER;
 
-			bool canStartGame =
-				a_gameState ==
-				GameState::Title ||
-				a_gameState ==
-				GameState::StartGame ||
-				a_gameState ==
-				GameState::GameOver;
+			bool canStartGame = a_gameState == GameState::Title || a_gameState == GameState::StartGame || a_gameState == GameState::GameOver || a_gameState == GameState::Win;
 
 			if (enterPressed && canStartGame) {
 				StartNewGame();
@@ -481,6 +591,7 @@ void FishGame::Update(float dt) {
 
 		HandleAudioInput();
 		HandlePlayerInput(dt);
+		HandleEnemyShooting(dt);
 		EmitPlayerParticle();
 		HandleMouseInput();
 
@@ -492,6 +603,9 @@ void FishGame::Update(float dt) {
 	case GameState::GameOver:
 		break;
 
+	case GameState::Win:
+		break;
+
 	default:
 		break;
 	}
@@ -501,108 +615,49 @@ void FishGame::HandleAudioInput() {
 	Input& input = engine.GetInput();
 	Audio& audio = engine.GetAudio();
 
-	if (input.GetKeyPress(SDL_SCANCODE_1)) {
-		audio.PlaySound("bass");
-	}
-
-	if (input.GetKeyPress(SDL_SCANCODE_2)) {
-		audio.PlaySound("snare");
-	}
-
-	if (input.GetKeyPress(SDL_SCANCODE_3)) {
-		audio.PlaySound("clap");
-	}
-
-	if (input.GetKeyPress(SDL_SCANCODE_4)) {
-		audio.PlaySound("open-hat");
-	}
-
-	if (input.GetKeyPress(SDL_SCANCODE_5)) {
-		audio.PlaySound("cowbell");
-	}
+	if (input.GetKeyPress(SDL_SCANCODE_1)) { audio.PlaySound("bass"); }
+	if (input.GetKeyPress(SDL_SCANCODE_2)) { audio.PlaySound("snare"); }
+	if (input.GetKeyPress(SDL_SCANCODE_3)) { audio.PlaySound("clap"); }
+	if (input.GetKeyPress(SDL_SCANCODE_4)) { audio.PlaySound("open-hat"); }
+	if (input.GetKeyPress(SDL_SCANCODE_5)) { audio.PlaySound("cowbell"); }
 }
 
 void FishGame::HandlePlayerInput(float dt) {
-	if (
-		a_player == nullptr ||
-		a_player->IsDestroyed()
-		) {
-		return;
-	}
+	if (a_player == nullptr || a_player->IsDestroyed()) { return; }
 
 	Input& input = engine.GetInput();
 
-	float rotation =
-		a_player->GetTransform().rotation;
+	float rotation = a_player->GetTransform().rotation;
 
-	if (input.GetKeyDown(SDL_SCANCODE_LEFT)) {
-		rotation -= a_rotationSpeed * dt;
-	}
-
-	if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) {
-		rotation += a_rotationSpeed * dt;
-	}
+	if (input.GetKeyDown(SDL_SCANCODE_LEFT)) { rotation -= a_rotationSpeed * dt; }
+	if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) { rotation += a_rotationSpeed * dt; }
 
 	a_player->SetRotation(rotation);
 
 	Vector2 direction{ 0.0f, 0.0f };
 
-	if (input.GetKeyDown(SDL_SCANCODE_W)) {
-		direction.y -= 1.0f;
-	}
+	if (input.GetKeyDown(SDL_SCANCODE_W)) { direction.y -= 1.0f; }
+	if (input.GetKeyDown(SDL_SCANCODE_S)) { direction.y += 1.0f; }
+	if (input.GetKeyDown(SDL_SCANCODE_A)) { direction.x -= 1.0f; }
+	if (input.GetKeyDown(SDL_SCANCODE_D)) { direction.x += 1.0f; }
+	if (direction.LengthSqr() > 0.0f) { direction = direction.Normalized(); }
+	if (a_player) { auto* pc = a_player->GetComponent<nu::PlayerComponent>(); float speed = pc ? pc->GetSpeed() : 0.0f; a_player->SetVelocity(direction * speed); }
+	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) { HandleShooting(); }
 
-	if (input.GetKeyDown(SDL_SCANCODE_S)) {
-		direction.y += 1.0f;
-	}
-
-	if (input.GetKeyDown(SDL_SCANCODE_A)) {
-		direction.x -= 1.0f;
-	}
-
-	if (input.GetKeyDown(SDL_SCANCODE_D)) {
-		direction.x += 1.0f;
-	}
-
-	if (direction.LengthSqr() > 0.0f) {
-		direction = direction.Normalized();
-	}
-
-	if (a_player) {
-		auto* pc = a_player->GetComponent<nu::PlayerComponent>();
-		float speed = pc ? pc->GetSpeed() : 0.0f;
-		a_player->SetVelocity(direction * speed);
-	}
-
-	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) {
-		HandleShooting();
-	}
 }
 
 void FishGame::HandleShooting() {
-	if (
-		a_player == nullptr ||
-		a_player->IsDestroyed()
-		) {
-		return;
-	}
+	if (a_player == nullptr || a_player->IsDestroyed() ) { return; }
 
-	float rotation =
-		a_player->GetTransform().rotation +
-		a_playerSpriteRotationOffsetDeg;
+	float rotation = a_player->GetTransform().rotation + a_playerSpriteRotationOffsetDeg;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
-	forward = forward.Rotate(
-		rotation * DegToRad
-	);
+	forward = forward.Rotate(rotation * DegToRad);
 
-	float spawnDistance =
-		a_player->GetCollisionRadius() +
-		10.0f;
+	float spawnDistance = a_player->GetCollisionRadius() + 10.0f;
 
-	Vector2 bulletPosition =
-		a_player->GetTransform().position +
-		(forward * spawnDistance);
+	Vector2 bulletPosition = a_player->GetTransform().position + (forward * spawnDistance);
 
 	std::unique_ptr<nu::Actor> bullet = std::make_unique<nu::Actor>();
 	bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
@@ -629,11 +684,67 @@ void FishGame::HandleShooting() {
 		}
 	}
 
-	a_scene->AddActor(
-		std::move(bullet)
-	);
+	a_scene->AddActor(std::move(bullet));
 
 	engine.GetAudio().PlaySound("snare");
+}
+
+void FishGame::HandleEnemyShooting(float dt) {
+	if (a_player == nullptr || a_player->IsDestroyed()) {
+		return;
+	}
+
+	auto& actors = a_scene->GetActors();
+
+	for (auto& actor : actors) {
+		if (actor->IsDestroyed()) {
+			continue;
+		}
+
+		auto* ranged = actor->GetComponent<nu::RangedEnemyAIComponent>();
+		if (ranged == nullptr) {
+			continue;
+		}
+
+		if (!ranged->ConsumeShootRequest()) {
+			continue;
+		}
+
+		Vector2 toPlayer =
+			a_player->GetTransform().position - actor->GetTransform().position;
+
+		if (toPlayer.LengthSqr() <= 0.0f) {
+			continue;
+		}
+
+		Vector2 direction = toPlayer.Normalized();
+
+		auto bullet = std::make_unique<nu::Actor>();
+		bullet->SetTransform(Transform{ actor->GetTransform().position, 0.0f, 4.0f });
+		bullet->a_model = a_bulletModel;
+
+		bullet->AddComponent(std::make_unique<nu::RigidBodyComponent>());
+		bullet->SetVelocity(direction * 400.0f);
+		bullet->SetDamping(0.0f);
+		bullet->SetLifespan(2.5f);
+		bullet->SetCollisionRadius(2.0f);
+		bullet->AddComponent(std::make_unique<nu::BulletComponent>(true));   // isEnemyOwned = true
+
+		if (a_bulletTexture != nullptr) {
+			Vector2 texSize = a_bulletTexture->GetSize();
+			if (texSize.x > 0.0f) {
+				float scale = std::clamp(
+					(bullet->GetCollisionRadius() * 2.0f) / texSize.x, 0.005f, 5.0f
+				);
+				bullet->AddComponent(
+					std::make_unique<nu::SpriteRendererComponent>(a_bulletTexture, scale, Vector2{ 0.5f, 0.5f })
+				);
+			}
+		}
+
+		a_scene->AddActor(std::move(bullet));
+		engine.GetAudio().PlaySound("open-hat");
+	}
 }
 
 void FishGame::HandleMouseInput() {
@@ -642,16 +753,24 @@ void FishGame::HandleMouseInput() {
 }
 
 void FishGame::CheckCollisions() {
-	auto& actors =
-		a_scene->GetActors();
+	auto& actors = a_scene->GetActors();
 
+	auto isAnyEnemy = [](Actor& a) {
+		return a.GetComponent<nu::EnemyAIComponent>() != nullptr ||
+			a.GetComponent<nu::RangedEnemyAIComponent>() != nullptr;
+		};
+
+	// Player bullets vs any enemy
 	for (auto& actor : actors) {
 		auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
-		if (bulletTag == nullptr || actor->IsDestroyed()) continue;
+		if (bulletTag == nullptr || actor->IsDestroyed() || bulletTag->IsEnemyOwned()) {
+			continue;
+		}
 
 		for (auto& otherActor : actors) {
-			auto* enemyAI = otherActor->GetComponent<nu::EnemyAIComponent>();
-			if (enemyAI == nullptr || otherActor->IsDestroyed()) continue;
+			if (otherActor->IsDestroyed() || !isAnyEnemy(*otherActor)) {
+				continue;
+			}
 
 			if (actor->IsColliding(*otherActor)) {
 				Vector2 explosionPosition = otherActor->GetTransform().position;
@@ -660,50 +779,107 @@ void FishGame::CheckCollisions() {
 				otherActor->Destroy();
 
 				engine.GetAudio().PlaySound("clap");
-
 				CreateExplosion(explosionPosition, Color{ 1.0f, 0.65f, 0.2f }, 100);
 
 				a_score++;
 				UpdateHUDText();
-
 				break;
 			}
 		}
 	}
 
-	if (a_player == nullptr || a_player->IsDestroyed() || a_playerInvincibilityTimer > 0.0f) {
+	if (a_player == nullptr || a_player->IsDestroyed()) {
+		return;
+	}
+
+	// Food pickups
+	if (a_playerInvincibilityTimer <= 0.0f) {
+		for (auto* food : a_foodActors) {
+			if (food == nullptr || food->IsDestroyed()) {
+				continue;
+			}
+
+			if (!a_player->IsColliding(*food)) {
+				continue;
+			}
+
+			food->Destroy();
+			a_foodCollected++;
+			a_score++;
+
+			engine.GetAudio().PlaySound("open-hat");
+			CreateExplosion(food->GetTransform().position, Color{ 1.0f, 0.9f, 0.2f }, 40);
+			UpdateHUDText();
+
+			if (a_foodCollected >= a_foodRequired) {
+				WinGame();
+				return;
+			}
+
+			break;
+		}
+	}
+
+	if (a_playerInvincibilityTimer > 0.0f) {
 		return;
 	}
 
 	bool gameOver = false;
+	bool tookHit = false;
+	Vector2 hitPosition{};
 
+	// Melee contact with either enemy type
 	for (auto& actor : actors) {
-		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
-		if (enemyAI == nullptr || actor->IsDestroyed()) continue;
+		if (actor->IsDestroyed() || !isAnyEnemy(*actor)) {
+			continue;
+		}
 
-		if (!a_player->IsColliding(*actor)) continue;
+		if (!a_player->IsColliding(*actor)) {
+			continue;
+		}
 
-		Vector2 collisionPosition = actor->GetTransform().position;
-
+		hitPosition = actor->GetTransform().position;
 		actor->Destroy();
+		tookHit = true;
+		break;
+	}
 
-		CreateExplosion(collisionPosition, Color{ 1.0f, 0.2f, 0.2f }, 75);
+	// Enemy bullets vs player
+	if (!tookHit) {
+		for (auto& actor : actors) {
+			auto* bulletTag = actor->GetComponent<nu::BulletComponent>();
+			if (bulletTag == nullptr || actor->IsDestroyed() || !bulletTag->IsEnemyOwned()) {
+				continue;
+			}
 
+			if (!a_player->IsColliding(*actor)) {
+				continue;
+			}
+
+			hitPosition = actor->GetTransform().position;
+			actor->Destroy();
+			tookHit = true;
+			break;
+		}
+	}
+
+	if (tookHit) {
+		CreateExplosion(hitPosition, Color{ 1.0f, 0.2f, 0.2f }, 75);
 		a_lives--;
 
 		engine.GetAudio().PlaySound("bass");
-
 		UpdateHUDText();
 
-		if (a_lives <= 0) { gameOver = true; break; }
-
-		Renderer& renderer = engine.GetRenderer();
-
-		a_player->SetPosition(Vector2{ renderer.GetWidth() * 0.5f, renderer.GetHeight() * 0.5f });
-		a_player->SetVelocity(Vector2{ 0.0f, 0.0f });
-		a_player->SetRotation(0.0f);
-		a_playerInvincibilityTimer = 1.5f;
-		break;
+		if (a_lives <= 0) {
+			gameOver = true;
+		}
+		else {
+			Renderer& renderer = engine.GetRenderer();
+			a_player->SetPosition(Vector2{ renderer.GetWidth() * 0.5f, renderer.GetHeight() * 0.5f });
+			a_player->SetVelocity(Vector2{ 0.0f, 0.0f });
+			a_player->SetRotation(0.0f);
+			a_playerInvincibilityTimer = 1.5f;
+		}
 	}
 
 	if (gameOver) {
@@ -716,13 +892,8 @@ void FishGame::CheckCollisions() {
 	}
 }
 
-void FishGame::CreateExplosion(
-	const Vector2& position,
-	const Color& color,
-	int particleCount
-) {
-	ParticleSystem& particleSystem =
-		engine.GetPS();
+void FishGame::CreateExplosion(const Vector2& position, const Color& color, int particleCount) {
+	ParticleSystem& particleSystem = engine.GetPS();
 
 	for (int i = 0; i < particleCount; i++) {
 		Particle particle;
@@ -746,59 +917,26 @@ void FishGame::CreateExplosion(
 }
 
 void FishGame::EmitPlayerParticle() {
-	if (
-		a_player == nullptr ||
-		a_player->IsDestroyed()
-		) {
-		return;
-	}
+	if (a_player == nullptr || a_player->IsDestroyed()) { return; }
 
-	if (
-		a_player->GetVelocity().LengthSqr() <=
-		0.0f
-		) {
-		return;
-	}
+	if (a_player->GetVelocity().LengthSqr() <= 0.0f) { return; }
 
-	float rotation =
-		a_player->GetTransform().rotation +
-		a_playerSpriteRotationOffsetDeg;
+	float rotation = a_player->GetTransform().rotation + a_playerSpriteRotationOffsetDeg;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
-	forward = forward.Rotate(
-		rotation * DegToRad
-	);
+	forward = forward.Rotate(rotation * DegToRad);
 
-	float trailDistance =
-		a_player->GetCollisionRadius() +
-		20.0f;
+	float trailDistance = a_player->GetCollisionRadius() + 20.0f;
 
 	Particle particle;
 
-	particle.position =
-		a_player->GetTransform().position -
-		(forward * trailDistance);
-
-	particle.position.x +=
-		RandomFloat(-5.0f, 5.0f);
-
-	particle.position.y +=
-		RandomFloat(-5.0f, 5.0f);
-
-	particle.color =
-		Color{ 0.4f, 0.8f, 1.0f };
-
-	particle.lifespan =
-		RandomFloat(0.25f, 0.75f);
-	particle.velocity =
-		(forward *
-			RandomFloat(-100.0f, -40.0f)) +
-		Vector2{
-			RandomFloat(-30.0f, 30.0f),
-			RandomFloat(-30.0f, 30.0f)
-	};
-
+	particle.position = a_player->GetTransform().position - (forward * trailDistance);
+	particle.position.x += RandomFloat(-5.0f, 5.0f);
+	particle.position.y += RandomFloat(-5.0f, 5.0f);
+	particle.color = Color{ 0.4f, 0.8f, 1.0f };
+	particle.lifespan = RandomFloat(0.25f, 0.75f);
+	particle.velocity = (forward * RandomFloat(-100.0f, -40.0f)) + Vector2{ RandomFloat(-30.0f, 30.0f), RandomFloat(-30.0f, 30.0f) };
 	particle.size = RandomFloat(2.0f, 6.0f);
 	particle.rotation = RandomFloat(0.0f, 360.0f);
 	particle.angularVelocity = RandomFloat(-120.0f, 120.0f);
@@ -815,6 +953,8 @@ void FishGame::StartNewGame() {
 	a_level = 1;
 	a_levelStartTimer = 0.0f;
 	a_playerInvincibilityTimer = 0.0f;
+	a_foodCollected = 0;
+	a_foodActors.clear();
 
 	a_mousePoints.clear();
 	a_startsNewShape.clear();
@@ -823,6 +963,27 @@ void FishGame::StartNewGame() {
 	UpdateHUDText();
 
 	a_gameState = GameState::Game;
+}
+
+void FishGame::WinGame() {
+	engine.GetAudio().PlaySound("cowbell");
+
+	a_scene->RemoveAll();
+	a_player = nullptr;
+
+	if (a_score > a_highScore) {
+		a_highScore = a_score;
+		SaveHighScore();
+	}
+
+	std::string message =
+		"You Win! Score: " + std::to_string(a_score) +
+		" | High Score: " + std::to_string(a_highScore) +
+		" | Press Enter to Play Again";
+
+	a_stateText.Create(engine.GetRenderer(), message, Color{ 0.3f, 1.0f, 0.4f });
+
+	a_gameState = GameState::Win;
 }
 
 void FishGame::EndGame() {
@@ -836,26 +997,18 @@ void FishGame::EndGame() {
 		SaveHighScore();
 	}
 
-	std::string message =
-		"Game Over | Score: " +
-		std::to_string(a_score) +
-		" | High Score: " +
-		std::to_string(a_highScore) +
-		" | Press Enter to Play Again";
-
-	a_stateText.Create(
-		engine.GetRenderer(),
-		message,
-		Color{ 1.0f, 0.25f, 0.25f }
-	);
-
+	std::string message = "Game Over | Score: " + std::to_string(a_score) + " | High Score: " + std::to_string(a_highScore) + " | Press Enter to Play Again";
+	a_stateText.Create(engine.GetRenderer(), message, Color{ 1.0f, 0.25f, 0.25f });
 	a_gameState = GameState::GameOver;
 }
 
 bool FishGame::HasActiveEnemies() const {
 	for (const auto& actor : a_scene->GetActors()) {
-		auto* enemyAI = actor->GetComponent<nu::EnemyAIComponent>();
-		if (enemyAI != nullptr && !actor->IsDestroyed()) {
+		bool isEnemy =
+			actor->GetComponent<nu::EnemyAIComponent>() != nullptr ||
+			actor->GetComponent<nu::RangedEnemyAIComponent>() != nullptr;
+
+		if (isEnemy && !actor->IsDestroyed()) {
 			return true;
 		}
 	}
@@ -866,16 +1019,8 @@ void FishGame::StartNextLevel() {
 	a_level++;
 	a_levelStartTimer = 2.0f;
 
-	std::string message =
-		"Level " +
-		std::to_string(a_level);
-
-	a_stateText.Create(
-		engine.GetRenderer(),
-		message,
-		Color{ 0.45f, 0.85f, 1.0f }
-	);
-
+	std::string message = "Level " + std::to_string(a_level);
+	a_stateText.Create(engine.GetRenderer(), message, Color{ 0.45f, 0.85f, 1.0f } );
 	engine.GetAudio().PlaySound("open-hat");
 
 	UpdateHUDText();
@@ -884,68 +1029,32 @@ void FishGame::StartNextLevel() {
 }
 
 void FishGame::SpawnLevelEnemies() {
-	Renderer& renderer =
-		engine.GetRenderer();
+	Renderer& renderer = engine.GetRenderer();
 
 	int enemyCount = a_level + 2;
-
-	float normalEnemySpeed =
-		75.0f +
-		(a_level * 20.0f);
-
-	float fastEnemySpeed =
-		normalEnemySpeed * 1.75f;
+	float normalEnemySpeed = 75.0f + (a_level * 20.0f);
+	float fastEnemySpeed = normalEnemySpeed * 1.75f;
 
 	for (int i = 0; i < enemyCount; i++) {
 		Vector2 position{
-			RandomFloat(
-				100.0f,
-				static_cast<float>(
-					renderer.GetWidth() - 100
-				)
-			),
-			RandomFloat(
-				100.0f,
-				static_cast<float>(
-					renderer.GetHeight() - 100
-				)
-			)
+			RandomFloat( 100.0f, static_cast<float>(renderer.GetWidth() - 100)),
+			RandomFloat(100.0f, static_cast<float>(renderer.GetHeight() - 100))
 		};
 
-		if (
-			a_level >= 2 &&
-			i % 3 == 0
-			) {
-			AddFastEnemy(
-				position,
-				fastEnemySpeed
+		if (a_level >= 2 && i % 3 == 0) {
+			AddFastEnemy(position, fastEnemySpeed
 			);
 		}
 		else {
-			AddEnemy(
-				position,
-				normalEnemySpeed
+			AddEnemy(position, normalEnemySpeed
 			);
 		}
 	}
 }
 
 void FishGame::UpdateHUDText() {
-	std::string hud =
-		"Score: " +
-		std::to_string(a_score) +
-		" | High Score: " +
-		std::to_string(a_highScore) +
-		" | Lives: " +
-		std::to_string(a_lives) +
-		" | Level: " +
-		std::to_string(a_level);
-
-	a_hudText.Create(
-		engine.GetRenderer(),
-		hud,
-		Color{ 1.0f, 1.0f, 1.0f }
-	);
+	std::string hud = "Score: " + std::to_string(a_score) + " | High Score: " + std::to_string(a_highScore) + " | Lives: " + std::to_string(a_lives) + " | Level: " + std::to_string(a_level);
+	a_hudText.Create(engine.GetRenderer(), hud, Color{ 1.0f, 1.0f, 1.0f });
 }
 
 void FishGame::LoadHighScore() {
@@ -965,11 +1074,7 @@ void FishGame::LoadHighScore() {
 }
 
 void FishGame::SaveHighScore() {
-	WriteTextFile(
-		"highscore.txt",
-		std::to_string(a_highScore),
-		false
-	);
+	WriteTextFile("highscore.txt", std::to_string(a_highScore), false);
 }
 
 void FishGame::DrawPhysicsDemo(const Renderer& renderer) {
@@ -998,11 +1103,8 @@ void FishGame::DrawPhysicsDemo(const Renderer& renderer) {
 		}
 
 		b2Vec2 position = b2Body_GetPosition(bodies[i]);
-
 		float screenX = screenCenterX + (position.x * pixelsPerMeter);
-
 		float screenY = screenCenterY - (position.y * pixelsPerMeter);
-
 		renderer.DrawFillRect( screenX - pixelsPerMeter, screenY - pixelsPerMeter, pixelsPerMeter * 2.0f, pixelsPerMeter * 2.0f );
 	}
 }
@@ -1014,11 +1116,7 @@ void FishGame::Draw(const Renderer& renderer) {
 	switch (a_gameState) {
 	case GameState::Title:
 	case GameState::StartGame:
-		a_stateText.Draw(
-			renderer,
-			250.0f,
-			475.0f
-		);
+		a_stateText.Draw(renderer, 250.0f, 475.0f);
 		break;
 
 	case GameState::StartLevel:
@@ -1088,6 +1186,11 @@ void FishGame::Draw(const Renderer& renderer) {
 		);
 		break;
 
+	case GameState::Win:
+		engine.GetPS().Draw(renderer);
+		a_stateText.Draw(renderer, 250.0f, 475.0f);
+		break;
+
 	default:
 		break;
 	}
@@ -1098,9 +1201,7 @@ void FishGame::Draw(const Renderer& renderer) {
 void FishGame::Shutdown() {
 	a_scene->RemoveAll();
 	a_player = nullptr;
-
 	a_texture.reset();
-
 	a_stateText.SetFont(nullptr);
 	a_hudText.SetFont(nullptr);
 	a_font.reset();
