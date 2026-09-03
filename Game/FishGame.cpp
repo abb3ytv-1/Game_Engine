@@ -297,7 +297,7 @@ void FishGame::CreateActors() {
 
 	playerActor->SetTransform(
 		Transform{
-			Vector2{960.0f, 540.0f},
+			Vector2{160.0f, 120.0f},
 			0.0f,
 			10.0f
 		}
