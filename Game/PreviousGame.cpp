@@ -9,6 +9,7 @@
 #include "../Engine/Renderer/SpriteRendererComponent.h"
 #include "../Engine/Renderer/Model.h"
 #include "../Engine/Renderer/ParticleSystem.h"
+#include "../Engine/TilemapRendererComponent.h"
 
 #include "../Engine/Physics/CircleCollider2DComponent.h"
 #include "../Engine/Physics/RigidBodyComponent.h"
