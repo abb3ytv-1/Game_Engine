@@ -56,7 +56,7 @@ This project was built for C++ Programming II as a final course project. It incl
 
 ## Known Issues & Limitations
 
-- The engine's `Factory` system exists but is not yet used to spawn actors at runtime — actors are currently created directly in code.
+- The engine's `Factory` system is used to create player and enemy actors at runtime.
 - Scene/actor serialization (`Serializer`, `PrototypeManager`) is implemented but not yet exercised by the game beyond loading the tilemap JSON and a plain-text high score file.
 - No background music is currently loaded — only short sound effects (bass, snare, clap, open-hat, cowbell).
 - The engine includes a standalone box2d physics demo (visible as a small falling-boxes effect during gameplay) that is not yet integrated with actual gameplay collision.
