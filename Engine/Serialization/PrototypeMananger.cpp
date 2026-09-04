@@ -266,8 +266,16 @@ namespace nu
 
                 else if (type == "Bullet")
                 {
+                    bool enemyOwned = false;
+
+                    if (component.HasMember("enemyOwned") &&
+                        component["enemyOwned"].IsBool())
+                    {
+                        enemyOwned = component["enemyOwned"].GetBool();
+                    }
+
                     actor->AddComponent(
-                        std::make_unique<BulletComponent>()
+                        std::make_unique<BulletComponent>(enemyOwned)
                     );
                 }
 

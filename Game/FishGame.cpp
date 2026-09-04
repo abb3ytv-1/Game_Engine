@@ -43,6 +43,7 @@ int FishGame::Run() {
 		return 1;
 	}
 
+	engine.GetAudio().PlayMusic("music");
 	Renderer& renderer = engine.GetRenderer();
 
 	while (!a_quit) {
@@ -83,10 +84,16 @@ bool FishGame::Initialize() {
 
 	a_scene = std::make_unique<Scene>();
 
+
 	if (!SetWorkingDirectory("FishGame")) {
 		std::cerr
 			<< "Could not set FishGame working directory.\n";
 
+		return false;
+	}
+
+	if (!a_scene->Load("../../../Game/scene.json")) {
+		std::cerr << "Could not load scene serialization.\n";
 		return false;
 	}
 
@@ -305,6 +312,11 @@ bool FishGame::LoadAudio() {
 	loaded &= audio.AddSound(
 		"cowbell",
 		"Audio/cowbell.wav"
+	);
+
+	loaded &= audio.AddMusic(
+		"music",
+		"Audio/alexzavesa-dance-playful-night-510786.mp3"
 	);
 
 	return loaded;
@@ -704,18 +716,18 @@ void FishGame::HandleShooting() {
 
 	Vector2 bulletPosition = a_player->GetTransform().position + (forward * spawnDistance);
 
-	std::unique_ptr<nu::Actor> bullet = std::make_unique<nu::Actor>();
+	std::unique_ptr<nu::Actor> bullet = a_scene->Instantiate("bullet");
+
+	if (bullet == nullptr) {
+		return;
+	}
 	bullet->SetTransform(Transform{ bulletPosition, rotation, 4.0f });
 	bullet->a_model = a_bulletModel;
 
 	Vector2 forwardLocal{ 1.0f, 0.0f };
 	forwardLocal = forwardLocal.Rotate(rotation * DegToRad);
-	bullet->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 	bullet->SetVelocity(forwardLocal * 700.0f);
 	bullet->SetDamping(0.0f);
-	bullet->SetLifespan(2.0f);
-	bullet->SetCollisionRadius(2.0f);
-	bullet->AddComponent(std::make_unique<nu::BulletComponent>());
 
 	if (bullet && a_bulletTexture != nullptr) {
 		Vector2 texSize = a_bulletTexture->GetSize();
@@ -764,16 +776,20 @@ void FishGame::HandleEnemyShooting(float dt) {
 
 		Vector2 direction = toPlayer.Normalized();
 
-		auto bullet = std::make_unique<nu::Actor>();
-		bullet->SetTransform(Transform{ actor->GetTransform().position, 0.0f, 4.0f });
+		auto bullet = a_scene->Instantiate("enemyBullet");
+
+		if (bullet == nullptr) {
+			continue;
+		}
+
+		bullet->SetTransform(
+			Transform{ actor->GetTransform().position, 0.0f, 4.0f }
+		);
+
 		bullet->a_model = a_bulletModel;
 
-		bullet->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 		bullet->SetVelocity(direction * 400.0f);
 		bullet->SetDamping(0.0f);
-		bullet->SetLifespan(2.5f);
-		bullet->SetCollisionRadius(2.0f);
-		bullet->AddComponent(std::make_unique<nu::BulletComponent>(true));   // isEnemyOwned = true
 
 		if (a_bulletTexture != nullptr) {
 			Vector2 texSize = a_bulletTexture->GetSize();

@@ -12,6 +12,31 @@ namespace nu {
 
 	Scene::~Scene() = default;
 
+	bool Scene::Load(const std::string& filename) {
+		rapidjson::Document data;
+
+		if (!Serializer::LoadJSON(filename, data)) {
+			return false;
+		}
+
+		if (!data.HasMember("prototypes") ||
+			!data["prototypes"].IsObject()) {
+
+			std::cerr
+				<< "Scene file is missing a valid prototypes object."
+				<< std::endl;
+
+			return false;
+		}
+
+		a_prototypeManager =
+			std::make_unique<PrototypeManager>();
+
+		return a_prototypeManager->Load(
+			data["prototypes"]
+		);
+	}
+
 	void Scene::AddActor(std::unique_ptr<Actor> actor) {
 		if (actor != nullptr) {
 			a_pendingActors.push_back(std::move(actor));

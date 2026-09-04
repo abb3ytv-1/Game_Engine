@@ -44,6 +44,16 @@ namespace nu {
 
 		a_sounds.clear();
 
+		for (auto& musicPair : a_music) {
+			FMOD::Sound* music = musicPair.second;
+
+			if (music != nullptr) {
+				CheckFMODResult(music->release());
+			}
+		}
+
+		a_music.clear();
+
 		if (a_fmodSystem != nullptr) {
 			CheckFMODResult(a_fmodSystem->close());
 			CheckFMODResult(a_fmodSystem->release());
@@ -94,6 +104,73 @@ namespace nu {
 
 		// Store the sound pointer using its descriptive name.
 		a_sounds[name] = sound;
+
+		return true;
+	}
+
+	bool Audio::AddMusic(
+		const std::string& name,
+		const std::string& filename
+	) {
+		if (a_music.find(name) != a_music.end()) {
+			std::cerr
+				<< "Audio System: music name already exists: "
+				<< name
+				<< '\n';
+
+			return false;
+		}
+
+		if (a_fmodSystem == nullptr) {
+			return false;
+		}
+
+		FMOD::Sound* music = nullptr;
+
+		FMOD_RESULT result =
+			a_fmodSystem->createStream(
+				filename.c_str(),
+				FMOD_DEFAULT,
+				nullptr,
+				&music
+			);
+
+		if (!CheckFMODResult(result)) {
+			return false;
+		}
+
+		a_music[name] = music;
+
+		return true;
+	}
+
+	bool Audio::PlayMusic(const std::string& name) {
+		auto musicIterator = a_music.find(name);
+
+		if (musicIterator == a_music.end()) {
+			std::cerr
+				<< "Audio System: music name does not exist: "
+				<< name
+				<< '\n';
+
+			return false;
+		}
+
+		if (a_fmodSystem == nullptr) {
+			return false;
+		}
+
+		FMOD_RESULT result =
+			a_fmodSystem->playSound(
+				musicIterator->second,
+				nullptr,
+				false,
+				nullptr
+			);
+
+		if (!CheckFMODResult(result)) {
+			return false;
+		}
 
 		return true;
 	}

@@ -23,6 +23,15 @@ namespace nu {
 			const std::string& name
 		);
 
+		bool AddMusic(
+			const std::string& name,
+			const std::string& filename
+		);
+
+		bool PlayMusic(
+			const std::string& name
+		);
+
 	private:
 		bool CheckFMODResult(
 			FMOD_RESULT result
@@ -35,5 +44,10 @@ namespace nu {
 			std::string,
 			FMOD::Sound*
 		> a_sounds;
+
+		std::map<
+			std::string,
+			FMOD::Sound*
+		> a_music;
 	};
 }
