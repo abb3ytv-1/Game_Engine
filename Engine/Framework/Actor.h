@@ -166,11 +166,20 @@ namespace nu {
 			return a_tag;
 		}
 
+		void SetWrapScreen(bool wrap) {
+			a_wrapScreen = wrap;
+		}
+
+		bool GetWrapScreen() const {
+			return a_wrapScreen;
+		}
+
 	protected:
 		Transform a_transform;
 
 		float a_lifespan{ -1.0f };
 		std::string a_tag;
+		bool a_wrapScreen{ true };
 
 public:
 		bool a_destroyed{ false };

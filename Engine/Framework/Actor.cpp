@@ -21,17 +21,19 @@ namespace nu {
 		}
 
 
-		a_transform.position.x = Wrap(
-			0.0f,
-			1920.0f,
-			a_transform.position.x
-		);
+		if (a_wrapScreen) {
+			a_transform.position.x = Wrap(
+				0.0f,
+				1920.0f,
+				a_transform.position.x
+			);
 
-		a_transform.position.y = Wrap(
-			0.0f,
-			1080.0f,
-			a_transform.position.y
-		);
+			a_transform.position.y = Wrap(
+				0.0f,
+				1080.0f,
+				a_transform.position.y
+			);
+		}
 
 		for (auto& comp : a_components) {
 			if (comp) comp->Update(*this, dt);

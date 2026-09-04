@@ -66,6 +66,14 @@ int FishGame::Run() {
 	return 0;
 }
 
+static bool IsPlayerOnGround(const Actor& player)
+{
+	const float groundY = 950.0f;
+	const float playerRadius = player.GetCollisionRadius();
+
+	return player.GetTransform().position.y + playerRadius >= groundY;
+}
+
 bool FishGame::Initialize() {
 	if (!Game::Initialize()) {
 		return false;
@@ -198,10 +206,10 @@ bool FishGame::Initialize() {
 			Resources().GetWithID<TextureFrames>(
 				"eye_frames",
 				"Textures/eye.png",
+				600,
 				1200,
 				600,
-				150,
-				600
+				300
 			);
 	}
 
@@ -368,6 +376,10 @@ void FishGame::CreateActors() {
 	a_player = playerActor.get();
 
 	if (a_player != nullptr) {
+		a_player->SetWrapScreen(false);
+	}
+
+	if (a_player != nullptr) {
 		a_player->SetCollisionRadius(8.0f);
 
 		if (a_animationTexture != nullptr && a_animationFrames != nullptr) {
@@ -395,10 +407,6 @@ void FishGame::CreateActors() {
 		AddFood(position);
 	}
 
-	// Enemies
-	AddEnemy(Vector2{ 200.0f, 200.0f }, 100.0f);
-	AddEnemy(Vector2{ 1700.0f, 300.0f }, 125.0f);
-	AddEnemy(Vector2{ 400.0f, 900.0f }, 75.0f);
 	AddRangedEnemy(Vector2{ 900.0f, 700.0f }, 90.0f);
 
 }
@@ -439,97 +447,6 @@ void FishGame::AddFood(const Vector2& position)
 	a_scene->AddActor(std::move(food));
 }
 
-void FishGame::AddEnemy(const Vector2& position, float speed)
-{
-	if (a_player == nullptr) {
-		return;
-	}
-
-	auto enemy = nu::Factory::Instance().CreateActor("Enemy");
-
-	if (!enemy) {
-		std::cerr << "Factory could not create Enemy.\n";
-		return;
-	}
-
-	enemy->SetTransform(Transform{ position, 0.0f, 8.0f });
-	enemy->a_model = a_enemyModel;
-
-	auto* factoryEnemy = dynamic_cast<nu::Enemy*>(enemy.get());
-
-	if (factoryEnemy != nullptr) {
-		factoryEnemy->SetTarget(*a_player);
-		factoryEnemy->SetSpeed(speed);
-	}
-
-	enemy->AddComponent(
-		std::make_unique<nu::RigidBodyComponent>()
-	);
-
-	enemy->SetCollisionRadius(8.0f);
-
-	if (a_enemyTexture != nullptr) {
-		Vector2 texSize = a_enemyTexture->GetSize();
-
-		if (texSize.x > 0.0f) {
-			float desiredDiameter =
-				enemy->GetCollisionRadius() * 2.0f;
-
-			float scale = desiredDiameter / texSize.x;
-
-			scale = std::clamp(scale, 0.01f, 5.0f);
-
-			enemy->AddComponent(
-				std::make_unique<nu::SpriteRendererComponent>(
-					a_enemyTexture,
-					scale,
-					Vector2{ 0.5f, 0.0f }
-				)
-			);
-		}
-	}
-
-	a_scene->AddActor(std::move(enemy));
-}
-
-void FishGame::AddFastEnemy(const Vector2& position,float speed) {
-	if (a_player == nullptr) {
-		return;
-	}
-
-	auto enemy = std::make_unique<nu::Actor>();
-	enemy->SetTransform(Transform{ position, 0.0f, 6.0f });
-	enemy->a_model = a_fastEnemyModel;
-	enemy->AddComponent(std::make_unique<nu::EnemyAIComponent>(a_player, speed));
-	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
-	enemy->SetCollisionRadius(6.0f);
-
-	if (enemy && a_fastEnemyTexture != nullptr) {
-		Vector2 texSize = a_fastEnemyTexture->GetSize();
-		if (texSize.x > 0.0f) {
-			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
-			float scale = desiredDiameter / texSize.x;
-			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_fastEnemyTexture, scale, Vector2{0.5f,0.0f}));
-		} else {
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_fastEnemyTexture, 1.0f, Vector2{0.5f,0.0f}));
-		}
-	}
-	else if (enemy && a_enemyTexture != nullptr) {
-		Vector2 texSize = a_enemyTexture->GetSize();
-		if (texSize.x > 0.0f) {
-			float desiredDiameter = enemy->GetCollisionRadius() * 2.0f;
-			float scale = desiredDiameter / texSize.x;
-			scale = std::clamp(scale, 0.01f, 5.0f);
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{0.5f,0.0f}));
-		} else {
-			enemy->AddComponent(std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, 1.0f, Vector2{0.5f,0.0f}));
-		}
-	}
-
-	a_scene->AddActor(std::move(enemy));
-}
-
 void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 	if (a_player == nullptr) {
 		return;
@@ -538,13 +455,22 @@ void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 	auto enemy = std::make_unique<nu::Actor>();
 	enemy->SetTransform(Transform{ position, 0.0f, 7.0f });
 	enemy->a_model = a_enemyModel;
+
 	enemy->AddComponent(
-		std::make_unique<nu::RangedEnemyAIComponent>(a_player, speed, 350.0f, 1.5f)
+		std::make_unique<nu::RangedEnemyAIComponent>(
+			a_player,
+			speed,
+			350.0f,
+			1.5f
+		)
 	);
+
 	enemy->AddComponent(std::make_unique<nu::RigidBodyComponent>());
 	enemy->SetCollisionRadius(7.0f);
 
-	if (a_rangedEnemyTexture != nullptr && a_rangedEnemyFrames != nullptr) {
+	if (a_rangedEnemyTexture != nullptr &&
+		a_rangedEnemyFrames != nullptr) {
+
 		enemy->AddComponent(
 			std::make_unique<nu::SpriteAnimationRendererComponent>(
 				a_rangedEnemyTexture,
@@ -554,16 +480,6 @@ void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 				6.0f
 			)
 		);
-	}
-	else if (a_enemyTexture != nullptr) {
-		// fallback if eye.png/frames failed to load
-		Vector2 texSize = a_enemyTexture->GetSize();
-		if (texSize.x > 0.0f) {
-			float scale = std::clamp((enemy->GetCollisionRadius() * 2.0f) / texSize.x, 0.01f, 5.0f);
-			enemy->AddComponent(
-				std::make_unique<nu::SpriteRendererComponent>(a_enemyTexture, scale, Vector2{ 0.5f, 0.0f })
-			);
-		}
 	}
 
 	a_scene->AddActor(std::move(enemy));
@@ -625,6 +541,88 @@ void FishGame::Update(float dt) {
 
 		Game::Update(dt);
 
+		// Keep the player standing on the ground.
+		if (a_player != nullptr) {
+			auto* rb = a_player->GetComponent<nu::RigidBodyComponent>();
+
+			if (rb != nullptr) {
+				// Assume the player is falling unless we detect
+				// that they are standing on something.
+				rb->SetGrounded(false);
+
+				// Keep the player standing on the ground.
+				if (IsPlayerOnGround(*a_player)) {
+					float groundY = 950.0f;
+					float playerRadius = a_player->GetCollisionRadius();
+
+					Vector2 position = a_player->GetTransform().position;
+					position.y = groundY - playerRadius;
+
+					a_player->SetPosition(position);
+
+					Vector2 velocity = rb->GetVelocity();
+					velocity.y = 0.0f;
+					rb->SetVelocity(velocity);
+
+					rb->SetGrounded(true);
+				}
+			}
+
+			// Floating platform collision
+			const float playerRadius = a_player->GetCollisionRadius();
+			Vector2 playerPosition = a_player->GetTransform().position;
+			Vector2 playerVelocity = rb->GetVelocity();
+
+			struct Platform
+			{
+				float x;
+				float y;
+				float width;
+				float height;
+			};
+
+			const Platform platforms[] =
+			{
+				{ 200.0f, 840.0f, 350.0f, 30.0f },
+				{ 750.0f, 730.0f, 350.0f, 30.0f },
+				{ 1300.0f, 620.0f, 350.0f, 30.0f }
+			};
+
+			float previousY = playerPosition.y - playerVelocity.y * dt;
+			float previousBottom = previousY + playerRadius;
+			float currentBottom = playerPosition.y + playerRadius;
+
+			if (playerVelocity.y >= 0.0f)
+			{
+				for (const Platform& platform : platforms)
+				{
+					float platformLeft = platform.x;
+					float platformRight = platform.x + platform.width;
+
+					bool overlapsX =
+						playerPosition.x + playerRadius > platformLeft &&
+						playerPosition.x - playerRadius < platformRight;
+
+					bool crossedTop =
+						previousBottom <= platform.y &&
+						currentBottom >= platform.y;
+
+					if (overlapsX && crossedTop)
+					{
+						playerPosition.y = platform.y - playerRadius;
+
+						a_player->SetPosition(playerPosition);
+
+						playerVelocity.y = 0.0f;
+						rb->SetVelocity(playerVelocity);
+						rb->SetGrounded(true);
+
+						break;
+					}
+				}
+			}
+		}
+
 		CheckCollisions();
 		break;
 
@@ -651,33 +649,51 @@ void FishGame::HandleAudioInput() {
 }
 
 void FishGame::HandlePlayerInput(float dt) {
-	if (a_player == nullptr || a_player->IsDestroyed()) { return; }
+	if (a_player == nullptr || a_player->IsDestroyed()) {
+		return;
+	}
 
 	Input& input = engine.GetInput();
 
-	float rotation = a_player->GetTransform().rotation;
+	auto* rb = a_player->GetComponent<nu::RigidBodyComponent>();
+	auto* pc = a_player->GetComponent<nu::PlayerComponent>();
 
-	if (input.GetKeyDown(SDL_SCANCODE_LEFT)) { rotation -= a_rotationSpeed * dt; }
-	if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) { rotation += a_rotationSpeed * dt; }
+	if (rb == nullptr || pc == nullptr) {
+		return;
+	}
 
-	a_player->SetRotation(rotation);
+	float horizontal = 0.0f;
 
-	Vector2 direction{ 0.0f, 0.0f };
+	if (input.GetKeyDown(SDL_SCANCODE_A)) {
+		horizontal -= 1.0f;
+	}
 
-	if (input.GetKeyDown(SDL_SCANCODE_W)) { direction.y -= 1.0f; }
-	if (input.GetKeyDown(SDL_SCANCODE_S)) { direction.y += 1.0f; }
-	if (input.GetKeyDown(SDL_SCANCODE_A)) { direction.x -= 1.0f; }
-	if (input.GetKeyDown(SDL_SCANCODE_D)) { direction.x += 1.0f; }
-	if (direction.LengthSqr() > 0.0f) { direction = direction.Normalized(); }
-	if (a_player) { auto* pc = a_player->GetComponent<nu::PlayerComponent>(); float speed = pc ? pc->GetSpeed() : 0.0f; a_player->SetVelocity(direction * speed); }
-	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) { HandleShooting(); }
+	if (input.GetKeyDown(SDL_SCANCODE_D)) {
+		horizontal += 1.0f;
+	}
 
+	float speed = pc->GetSpeed();
+
+	Vector2 velocity = rb->GetVelocity();
+	velocity.x = horizontal * speed;
+
+	rb->SetVelocity(velocity);
+
+	// Jump
+	if (input.GetKeyPress(SDL_SCANCODE_SPACE)) {
+		rb->Jump(500.0f);
+	}
+
+	// Keep shooting on Ctrl
+	if (input.GetKeyPress(SDL_SCANCODE_LCTRL)) {
+		HandleShooting();
+	}
 }
 
 void FishGame::HandleShooting() {
 	if (a_player == nullptr || a_player->IsDestroyed() ) { return; }
 
-	float rotation = a_player->GetTransform().rotation + a_playerSpriteRotationOffsetDeg;
+	float rotation = a_player->GetTransform().rotation;
 
 	Vector2 forward{ 1.0f, 0.0f };
 
@@ -1069,14 +1085,6 @@ void FishGame::SpawnLevelEnemies() {
 			RandomFloat(100.0f, static_cast<float>(renderer.GetHeight() - 100))
 		};
 
-		if (a_level >= 2 && i % 3 == 0) {
-			AddFastEnemy(position, fastEnemySpeed
-			);
-		}
-		else {
-			AddEnemy(position, normalEnemySpeed
-			);
-		}
 	}
 }
 
@@ -1141,6 +1149,8 @@ void FishGame::Draw(const Renderer& renderer) {
 	renderer.SetColor(0, 0, 0, 255);
 	renderer.Clear();
 
+
+
 	switch (a_gameState) {
 	case GameState::Title:
 	case GameState::StartGame:
@@ -1183,6 +1193,7 @@ void FishGame::Draw(const Renderer& renderer) {
 			);
 		}
 
+
 		renderer.SetColor(
 			255,
 			255,
@@ -1192,6 +1203,45 @@ void FishGame::Draw(const Renderer& renderer) {
 
 
 		Game::Draw(renderer);
+
+		// Draw platform ground
+		renderer.SetColor(60, 80, 70, 255);
+
+		renderer.DrawFillRect(
+			0.0f,
+			950.0f,
+			static_cast<float>(renderer.GetWidth()),
+			130.0f
+		);
+
+		// Draw floating platform
+		renderer.SetColor(80, 110, 90, 255);
+
+		// Floating platforms
+		renderer.SetColor(80, 110, 90, 255);
+
+		renderer.DrawFillRect(
+			200.0f,
+			840.0f,
+			350.0f,
+			30.0f
+		);
+
+		renderer.DrawFillRect(
+			750.0f,
+			730.0f,
+			350.0f,
+			30.0f
+		);
+
+		renderer.DrawFillRect(
+			1300.0f,
+			620.0f,
+			350.0f,
+			30.0f
+		);
+
+		renderer.SetColor(255, 255, 255, 255);
 
 		DrawPhysicsDemo(renderer);
 
