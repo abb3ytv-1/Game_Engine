@@ -127,7 +127,7 @@ bool FishGame::Initialize() {
 	a_hudText.SetFont(a_font);
 
 	std::string titleMessage =
-		"Space Adventure | High Score: " +
+		"Ghost Adventure | High Score: " +
 		std::to_string(a_highScore) +
 		" | Press Enter to Start";
 
@@ -222,11 +222,6 @@ bool FishGame::Initialize() {
 
 	a_bulletTexture = Resources().Get<Texture>(
 		"Textures/missile-2.png",
-		engine.GetRenderer()
-	);
-
-	a_foodTexture = Resources().Get<Texture>(
-		"Textures/coin.png",
 		engine.GetRenderer()
 	);
 
@@ -410,14 +405,17 @@ void FishGame::CreateActors() {
 
 	a_scene->AddActor(std::move(playerActor));
 
-	// Food pickups - collect a_foodRequired of these to win
-	for (int i = 0; i < a_foodRequired; i++) {
-		Vector2 position{
-			RandomFloat(100.0f, static_cast<float>(renderer.GetWidth() - 100)),
-			RandomFloat(100.0f, static_cast<float>(renderer.GetHeight() - 100))
-		};
+	// Food pickups - spawn on reachable platforms or the ground
+	const Vector2 foodPositions[] = {
+		Vector2{ 350.0f, 800.0f },
+		Vector2{ 900.0f, 690.0f },
+		Vector2{ 1450.0f, 580.0f },
+		Vector2{ 600.0f, 910.0f },
+		Vector2{ 1200.0f, 910.0f }
+	};
 
-		AddFood(position);
+	for (int i = 0; i < a_foodRequired; i++) {
+		AddFood(foodPositions[i]);
 	}
 
 	AddRangedEnemy(Vector2{ 900.0f, 700.0f }, 90.0f);
@@ -948,10 +946,6 @@ void FishGame::CheckCollisions() {
 		return;
 	}
 
-	std::cout << "Active actors: " << a_scene->GetActorCount()
-		<< " | Enemies: " << HasActiveEnemies()
-		<< std::endl;
-
 	if (!HasActiveEnemies()) {
 		StartNextLevel();
 	}
@@ -1031,6 +1025,8 @@ void FishGame::StartNewGame() {
 }
 
 void FishGame::WinGame() {
+	std::cout << "WIN GAME REACHED!" << std::endl;
+
 	engine.GetAudio().PlaySound("cowbell");
 
 	a_scene->RemoveAll();
