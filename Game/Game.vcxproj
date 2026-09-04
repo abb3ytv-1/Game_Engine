@@ -170,6 +170,7 @@
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FishGame.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="PreviousGame.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="Assets.h" />
     <ClInclude Include="FishGame.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="PreviousGame.h" />
   </ItemGroup>
   <ItemGroup>

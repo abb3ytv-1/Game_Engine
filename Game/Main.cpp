@@ -5,6 +5,7 @@
 #include "../Engine/Core/File.h"
 #include "../Engine/Core/Factory.h"
 #include "../Engine/Framework/PlayerComponent.h"
+#include "./Player.h"
 
 #include "./FishGame.h"
 
@@ -32,6 +33,8 @@ int main()
     int result = 0;
 
     {
+        RegisterPlayer();
+
         std::unique_ptr<FishGame> game = std::make_unique<FishGame>();
         result = game->Run();
 

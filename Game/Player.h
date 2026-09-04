@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Actor.h"
+#include "../Engine/Framework/Actor.h"
 
 namespace nu {
 	class Player : public Actor {
@@ -37,4 +37,6 @@ namespace nu {
 		float a_speed{ 300.0f };
 		int a_ammo{ 0 };
 	};
+
+	void RegisterPlayer();
 }

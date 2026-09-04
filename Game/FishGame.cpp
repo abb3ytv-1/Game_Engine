@@ -358,7 +358,8 @@ void FishGame::CreateActors() {
 	a_scene->AddActor(std::move(tilemapActor));
 
 	// Player - RESTORED (this block had gone missing)
-	std::unique_ptr<nu::Actor> playerActor = std::make_unique<nu::Actor>();
+	std::unique_ptr<nu::Actor> playerActor =
+		Factory::Instance().CreateActor("Player");
 
 	playerActor->SetTransform(
 		Transform{
@@ -452,7 +453,7 @@ void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 		return;
 	}
 
-	auto enemy = std::make_unique<nu::Actor>();
+	auto enemy = Factory::Instance().CreateActor("Enemy");
 	enemy->SetTransform(Transform{ position, 0.0f, 12.0f });
 	enemy->a_model = a_enemyModel;
 
@@ -477,7 +478,7 @@ void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 				a_rangedEnemyFrames,
 				0.8f,
 				Vector2{ 0.5f, 0.5f },
-				6.0f
+				8.0f
 			)
 		);
 	}
@@ -1081,10 +1082,11 @@ void FishGame::SpawnLevelEnemies() {
 
 	for (int i = 0; i < enemyCount; i++) {
 		Vector2 position{
-			RandomFloat( 100.0f, static_cast<float>(renderer.GetWidth() - 100)),
+			RandomFloat(100.0f, static_cast<float>(renderer.GetWidth() - 100)),
 			RandomFloat(100.0f, static_cast<float>(renderer.GetHeight() - 100))
 		};
 
+		AddRangedEnemy(position, normalEnemySpeed);
 	}
 }
 
@@ -1111,38 +1113,6 @@ void FishGame::LoadHighScore() {
 
 void FishGame::SaveHighScore() {
 	WriteTextFile("highscore.txt", std::to_string(a_highScore), false);
-}
-
-void FishGame::DrawPhysicsDemo(const Renderer& renderer) {
-	Physics& physics = engine.GetPhysics();
-
-	const b2BodyId* bodies = physics.GetDemoBodies();
-	int bodyCount = physics.GetDemoBodyCount();
-
-	const float pixelsPerMeter = 05.0f;
-	
-	// center
-	const float screenCenterX = renderer.GetWidth() * 0.5f;
-	const float screenCenterY = renderer.GetHeight() * 0.5f;
-
-	// ground
-	renderer.SetColor(120, 120, 120, 255);
-
-	renderer.DrawFillRect(screenCenterX - (10.0f * pixelsPerMeter), screenCenterY + (5.0f * pixelsPerMeter), 20.0f * pixelsPerMeter, 1.0f * pixelsPerMeter);
-
-	// falling boxes
-	renderer.SetColor( 80, 180, 255, 255 );
-
-	for (int i = 0; i < bodyCount; i++) {
-		if (!b2Body_IsValid(bodies[i])) {
-			continue;
-		}
-
-		b2Vec2 position = b2Body_GetPosition(bodies[i]);
-		float screenX = screenCenterX + (position.x * pixelsPerMeter);
-		float screenY = screenCenterY - (position.y * pixelsPerMeter);
-		renderer.DrawFillRect( screenX - pixelsPerMeter, screenY - pixelsPerMeter, pixelsPerMeter * 2.0f, pixelsPerMeter * 2.0f );
-	}
 }
 
 void FishGame::Draw(const Renderer& renderer) {
@@ -1242,8 +1212,6 @@ void FishGame::Draw(const Renderer& renderer) {
 		);
 
 		renderer.SetColor(255, 255, 255, 255);
-
-		DrawPhysicsDemo(renderer);
 
 		engine.GetPS().Draw(renderer);
 
