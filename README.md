@@ -41,10 +41,10 @@ This project was built for C++ Programming II as a final course project. It incl
 ## Screenshots
 
 ### Gameplay
-![Tiled Editor](Screenshots/tiled-editor.png)
+![Gameplay](Screenshots/gameplay.png)
 
 ### Tiled Map Editor
-![Gameplay](Screenshots/gameplay.png)
+![Tiled Editor](Screenshots/tiled-editor.png)
 
 ## Building & Running
 
