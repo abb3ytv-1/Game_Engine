@@ -9,7 +9,7 @@ This project was built for C++ Programming II as a final course project. It incl
 ## Engine Features
 
 - **Rendering** — static sprites and frame-based sprite animation (`SpriteRendererComponent`, `SpriteAnimationRendererComponent`), plus a particle system for explosion/trail effects
-- **Audio** — sound effect playback via a dedicated `Audio` system
+- **Audio** — sound effect and background music playback via a dedicated `Audio` system
 - **Input** — full keyboard control scheme
 - **Physics & Collision** — a lightweight circle-based collision system driving actual gameplay (player/enemy/bullet collisions), plus a box2d integration used to generate static collision bodies from tilemap data
 - **Tile map–based world** — loads Tiled (`.json`) map exports, renders one or more tile layers, and scales to fill the screen
