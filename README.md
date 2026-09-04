@@ -40,12 +40,11 @@ This project was built for C++ Programming II as a final course project. It incl
 
 ## Screenshots
 
-*(Add screenshots here before submitting — one from the Tiled map editor showing the tilemap, and one from the running game showing gameplay.)*
-
-```
+### Gameplay
 ![Tiled Editor](Screenshots/tiled-editor.png)
+
+### Tiled Map Editor
 ![Gameplay](Screenshots/gameplay.png)
-```
 
 ## Building & Running
 
