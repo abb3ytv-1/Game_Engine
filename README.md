@@ -55,8 +55,6 @@ This project was built for C++ Programming II as a final course project. It incl
 
 ## Known Issues & Limitations
 
-- The engine's `Factory` system is used to create player and enemy actors at runtime.
-- Scene and actor serialization is used by the game to load actor prototypes and instantiate player and enemy bullet actors at runtime.
 - No major known issues at this time.
 - Mouse input is supported by the engine's `Input` system but is not currently used by the game.
 
