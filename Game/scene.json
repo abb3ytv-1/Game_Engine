@@ -3,13 +3,11 @@
     "player": {
       "type": "Actor",
       "tag": "Player",
-
       "transform": {
         "position": [ 960.0, 540.0 ],
         "rotation": 0.0,
         "scale": 10.0
       },
-
       "components": [
         {
           "type": "Player",
@@ -29,13 +27,11 @@
     "enemy": {
       "type": "Actor",
       "tag": "Enemy",
-
       "transform": {
         "position": [ 0.0, 0.0 ],
         "rotation": 0.0,
         "scale": 8.0
       },
-
       "components": [
         {
           "type": "EnemyAI",
@@ -54,13 +50,11 @@
     "fastEnemy": {
       "type": "Actor",
       "tag": "FastEnemy",
-
       "transform": {
         "position": [ 0.0, 0.0 ],
         "rotation": 0.0,
         "scale": 6.0
       },
-
       "components": [
         {
           "type": "EnemyAI",
@@ -79,45 +73,39 @@
     "bullet": {
       "type": "Actor",
       "tag": "Bullet",
-
       "lifespan": 2.0,
-
       "transform": {
         "position": [ 0.0, 0.0 ],
         "rotation": 0.0,
         "scale": 4.0
       },
-
-      "enemyBullet": {
-        "type": "Actor",
-        "tag": "EnemyBullet",
-
-        "lifespan": 2.5,
-
-        "transform": {
-          "position": [ 0.0, 0.0 ],
-          "rotation": 0.0,
-          "scale": 4.0
-        },
-
-        "components": [
-          {
-            "type": "Bullet",
-            "enemyOwned": true
-          },
-          {
-            "type": "RigidBody"
-          },
-          {
-            "type": "CircleCollider",
-            "radius": 2.0
-          }
-        ]
-      },
-
       "components": [
         {
           "type": "Bullet"
+        },
+        {
+          "type": "RigidBody"
+        },
+        {
+          "type": "CircleCollider",
+          "radius": 2.0
+        }
+      ]
+    },
+
+    "enemyBullet": {
+      "type": "Actor",
+      "tag": "EnemyBullet",
+      "lifespan": 2.5,
+      "transform": {
+        "position": [ 0.0, 0.0 ],
+        "rotation": 0.0,
+        "scale": 4.0
+      },
+      "components": [
+        {
+          "type": "Bullet",
+          "enemyOwned": true
         },
         {
           "type": "RigidBody"

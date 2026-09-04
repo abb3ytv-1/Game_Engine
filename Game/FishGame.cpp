@@ -948,6 +948,10 @@ void FishGame::CheckCollisions() {
 		return;
 	}
 
+	std::cout << "Active actors: " << a_scene->GetActorCount()
+		<< " | Enemies: " << HasActiveEnemies()
+		<< std::endl;
+
 	if (!HasActiveEnemies()) {
 		StartNextLevel();
 	}
