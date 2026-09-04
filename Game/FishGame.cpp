@@ -206,10 +206,10 @@ bool FishGame::Initialize() {
 			Resources().GetWithID<TextureFrames>(
 				"eye_frames",
 				"Textures/eye.png",
-				600,
 				1200,
 				600,
-				300
+				150,
+				150
 			);
 	}
 
@@ -453,7 +453,7 @@ void FishGame::AddRangedEnemy(const Vector2& position, float speed) {
 	}
 
 	auto enemy = std::make_unique<nu::Actor>();
-	enemy->SetTransform(Transform{ position, 0.0f, 7.0f });
+	enemy->SetTransform(Transform{ position, 0.0f, 12.0f });
 	enemy->a_model = a_enemyModel;
 
 	enemy->AddComponent(
