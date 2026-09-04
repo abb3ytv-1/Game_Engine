@@ -9,7 +9,7 @@ This project was built for C++ Programming II as a final course project. It incl
 ## Engine Features
 
 - **Rendering** — static sprites and frame-based sprite animation (`SpriteRendererComponent`, `SpriteAnimationRendererComponent`), plus a particle system for explosion/trail effects
-- **Audio** — sound effect playback via a dedicated `Audio` system
+- **Audio** — sound effect and background music playback via a dedicated `Audio` system
 - **Input** — full keyboard control scheme
 - **Physics & Collision** — a lightweight circle-based collision system driving actual gameplay (player/enemy/bullet collisions), plus a box2d integration used to generate static collision bodies from tilemap data
 - **Tile map–based world** — loads Tiled (`.json`) map exports, renders one or more tile layers, and scales to fill the screen
@@ -40,12 +40,11 @@ This project was built for C++ Programming II as a final course project. It incl
 
 ## Screenshots
 
-*(Add screenshots here before submitting — one from the Tiled map editor showing the tilemap, and one from the running game showing gameplay.)*
-
-```
-![Tiled Editor](Screenshots/tiled-editor.png)
+### Gameplay
 ![Gameplay](Screenshots/gameplay.png)
-```
+
+### Tiled Map Editor
+![Tiled Editor](Screenshots/tiled-editor.png)
 
 ## Building & Running
 
@@ -56,10 +55,7 @@ This project was built for C++ Programming II as a final course project. It incl
 
 ## Known Issues & Limitations
 
-- The engine's `Factory` system exists but is not yet used to spawn actors at runtime — actors are currently created directly in code.
-- Scene/actor serialization (`Serializer`, `PrototypeManager`) is implemented but not yet exercised by the game beyond loading the tilemap JSON and a plain-text high score file.
-- No background music is currently loaded — only short sound effects (bass, snare, clap, open-hat, cowbell).
-- The engine includes a standalone box2d physics demo (visible as a small falling-boxes effect during gameplay) that is not yet integrated with actual gameplay collision.
+- No major known issues at this time.
 - Mouse input is supported by the engine's `Input` system but is not currently used by the game.
 
 ## Credits
